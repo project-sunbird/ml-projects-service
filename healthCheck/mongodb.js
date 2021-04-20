@@ -13,7 +13,7 @@ function health_check() {
     return new Promise( async (resolve,reject) => {
 
         const db = mongoose.createConnection(
-            process.env.MONGODB_URL + ":" + process.env.MONGODB_PORT + "/" + process.env.MONGODB_DATABASE_NAME
+            process.env.MONGODB_URL
         );
           
         db.on("error", function () {

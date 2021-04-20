@@ -21,7 +21,7 @@ function health_check() {
         try {
 
             let healthCheckUrl = 
-            process.env.ASSESSMENT_APPLICATION_ENDPOINT +  "/healthCheckStatus";
+            process.env.ML_SURVEY_SERVICE_URL +  "/healthCheckStatus";
 
             const options = {
                 headers : {

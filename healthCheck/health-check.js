@@ -11,7 +11,6 @@ const kafka = require("./kafka");
 const { v1 : uuidv1 } = require('uuid');
 const assessmentHealthCheck = require("./assessments");
 const kendraHealthCheck = require("./kendra");
-const sunbirdHealthCheck = require("./sunbird");
 
 const obj = {
     MONGO_DB: {
@@ -34,11 +33,6 @@ const obj = {
         FAILED_CODE: 'KENDRA_SERVICE_HEALTH_FAILED',
         FAILED_MESSAGE: 'Kendra service is not healthy'
     },
-    SUNBIRD_SERVICE: {
-        NAME: 'sunbirdservice.api',
-        FAILED_CODE: 'SUNBIRD_SERVICE_HEALTH_FAILED',
-        FAILED_MESSAGE: 'sunbird service is not healthy'
-    },
     NAME: 'ImprovementServiceHealthCheck',
     API_VERSION: '1.0'
 }
@@ -50,13 +44,11 @@ let health_check = async function(req,res) {
     let kafkaConnection = await kafka.health_check();
     let assessmentServiceStatus = await assessmentHealthCheck.health_check();
     let kendraServiceStatus = await kendraHealthCheck.health_check();
-    let sunbirdServiceStatus = await sunbirdHealthCheck.health_check();
     checks.push(singleCheckObj("KAFKA",kafkaConnection));
     checks.push(singleCheckObj("MONGO_DB",mongodbConnection));
     checks.push(singleCheckObj("ASSESSMENT_SERVICE",assessmentServiceStatus));
     checks.push(singleCheckObj("KENDRA_SERVICE",kendraServiceStatus));
-    checks.push(singleCheckObj("SUNBIRD_SERVICE",sunbirdServiceStatus));
-
+    
     let checkServices = checks.filter( check => check.healthy === false);
 
     let result = {

@@ -22,15 +22,17 @@ let FileStream = class FileStream {
   constructor(fileName) {
     const currentDate = new Date();
     const fileExtensionWithTime = moment(currentDate).tz("Asia/Kolkata").format("YYYY_MM_DD_HH_mm") + ".csv";
-    
-    if( !fs.existsSync(process.env.PUBLIC_FOLDER_PATH)) {
-      fs.mkdirSync(process.env.PUBLIC_FOLDER_PATH);
+    const publicFolderPath = "public"; 
+    const csvReportsPath = "reports";
+
+    if( !fs.existsSync(publicFolderPath)) {
+      fs.mkdirSync(publicFolderPath);
     }
 
-    if( !fs.existsSync(process.env.PUBLIC_FOLDER_PATH + "/" + process.env.CSV_REPORTS_PATH)) {
-      fs.mkdirSync(process.env.PUBLIC_FOLDER_PATH + "/" + process.env.CSV_REPORTS_PATH);
+    if( !fs.existsSync(publicFolderPath + "/" + csvReportsPath)) {
+      fs.mkdirSync(publicFolderPath + "/" + csvReportsPath);
     }
-    const filePath = `${process.env.PUBLIC_FOLDER_PATH}/${process.env.CSV_REPORTS_PATH}/${moment(currentDate).tz("Asia/Kolkata").format("YYYY_MM_DD")}/`;
+    const filePath = `${publicFolderPath}/${csvReportsPath}/${moment(currentDate).tz("Asia/Kolkata").format("YYYY_MM_DD")}/`;
     this.ensureDirectoryPath(filePath);
     this.input = new stream.Readable({ objectMode: true });
     this.fileName = filePath + fileName + "_" + fileExtensionWithTime;

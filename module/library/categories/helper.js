@@ -56,6 +56,7 @@ module.exports = class LibraryCategoriesHelper {
               });
           }
 
+          console.log("queryObject",queryObject);
           let projectCategoriesData = 
           await database.models.projectCategories.find(
             queryObject, 

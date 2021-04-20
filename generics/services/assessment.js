@@ -8,7 +8,7 @@
  //dependencies
 const request = require('request');
 
-const ASSESSMENT_URL = process.env.ASSESSMENT_APPLICATION_ENDPOINT + process.env.ASSESSMENT_BASE_URL;
+const ASSESSMENT_URL = process.env.ML_SURVEY_SERVICE_URL;
 
 /**
   * Assessment create
@@ -31,7 +31,6 @@ const createAssessmentSolutionFromTemplate = function (token,templateId,bodyData
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token,
                 },
@@ -86,7 +85,6 @@ const createObservationFromSolutionTemplate = function (token,templateId,bodyDat
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token,
                 },
@@ -151,7 +149,6 @@ const addEntitiesToSolution = function (token,solutionId,bodyData) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token,
                 },
@@ -210,7 +207,6 @@ const addEntityToObservation = function (token,observationId,bodyData) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token,
                 },
@@ -270,7 +266,6 @@ const createEntityAssessors = function (token,programId,solutionId,entities) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token,
                 },
@@ -328,7 +323,6 @@ const observationDetails = function (token,observationId) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token,
                 }
@@ -380,7 +374,6 @@ const listSolutions = function (solutionIds) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                 },
                 json : {
@@ -438,7 +431,6 @@ const updateSolution = function ( token,updateData,solutionExternalId ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 },
@@ -498,7 +490,6 @@ const createObservation = function (token,solutionId,data) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token,
                 },
@@ -554,7 +545,6 @@ const listProgramsBasedOnIds = function ( programIds ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
                 },
                 json : {
@@ -611,7 +601,6 @@ const removeSolutionsFromProgram = function ( token,programId,solutionIds ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 },
@@ -662,7 +651,6 @@ const removeEntitiesFromSolution = function ( token,solutionId,entities ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 },
@@ -713,7 +701,6 @@ const listEntitiesByLocationIds = function ( token,locationIds ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 },

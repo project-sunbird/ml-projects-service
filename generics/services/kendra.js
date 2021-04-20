@@ -9,7 +9,7 @@
 const request = require('request');
 const fs = require("fs");
 
-const KENDRA_URL = process.env.KENDRA_APPLICATION_ENDPOINT +  process.env.KENDRA_BASE_URL;
+const KENDRA_URL = process.env.ML_CORE_SERVICE_URL;
 
 /**
   * Get downloadable file.
@@ -21,19 +21,9 @@ const KENDRA_URL = process.env.KENDRA_APPLICATION_ENDPOINT +  process.env.KENDRA
 
 const getDownloadableUrl = function (bodyData) {
 
-    let fileDownloadUrl = KENDRA_URL; 
+    let fileDownloadUrl = KENDRA_URL;  
+    fileDownloadUrl = fileDownloadUrl + CONSTANTS.endpoints.DOWNLOADABLE_URL;
     
-    if ( process.env.CLOUD_STORAGE === "GC" ) {
-        fileDownloadUrl = fileDownloadUrl + CONSTANTS.endpoints.DOWNLOADABLE_GCP_URL;
-        bodyData.bucketName = process.env.BUCKET_NAME;
-    } else if (process.env.CLOUD_STORAGE === "AWS" ) {
-        fileDownloadUrl = fileDownloadUrl + CONSTANTS.endpoints.DOWNLOADABLE_AWS_URL;
-        bodyData.bucketName = process.env.BUCKET_NAME;
-    } else {
-        fileDownloadUrl = fileDownloadUrl + CONSTANTS.endpoints.DOWNLOADABLE_AZURE_URL;
-        bodyData.bucketName = process.env.BUCKET_NAME;
-    }
-
     return new Promise((resolve, reject) => {
         try {
 
@@ -72,64 +62,6 @@ const getDownloadableUrl = function (bodyData) {
 
 }
 
-/**
-  * Upload file.
-  * @function
-  * @name upload
-  * @param {String} file - file to upload.
-  * @param {String} filePath - Upload file in path.
-  * @returns {Array} upload file.
-*/
-
-const upload = function (file,filePath) {
-
-    let fileUploadUrl = KENDRA_URL; 
-    let bucketName = "";
-
-    if ( process.env.CLOUD_STORAGE === "GC" ) {
-        fileUploadUrl = fileUploadUrl + "api/v1/cloud-services/gcp/uploadFile";
-        bucketName = process.env.BUCKET_NAME;
-    } else if( process.env.CLOUD_STORAGE === "AWS" ) {
-        fileUploadUrl = fileUploadUrl + "api/v1/cloud-services/aws/uploadFile";
-        bucketName = process.env.BUCKET_NAME;
-    } else {
-        fileUploadUrl = fileUploadUrl + "api/v1/cloud-services/azure/uploadFile";
-        bucketName = process.env.BUCKET_NAME;
-    }
-
-    return new Promise((resolve, reject) => {
-        try {
-
-            const kendraCallBack = function (err, response) {
-
-                let result = {
-                    success : true
-                };
-
-                if (err) {
-                    result.success = false;
-                } else {
-                    result["data"] = response.body;
-                }
-                return resolve(result);
-            }
-
-            let formData = request.post(fileUploadUrl,{
-                headers: {
-                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
-                }
-            },kendraCallBack);
-
-            let form = formData.form();
-            form.append("filePath",filePath);
-            form.append("bucketName",bucketName);
-            form.append("file",fs.createReadStream(file));
-
-        } catch (error) {
-            return reject(error);
-        }
-    });
-}
 
 /**
   * List of entity types.
@@ -154,7 +86,6 @@ const entityTypesDocuments = function (
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                 },
                 json : {
@@ -217,7 +148,6 @@ const rolesDocuments = function (
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                 },
                 json : {
@@ -275,7 +205,6 @@ const formDetails = function ( formName ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                 }
             };
@@ -329,7 +258,6 @@ const entityDocuments = function (
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                 },
                 json : {
@@ -385,7 +313,6 @@ const createUserProgramAndSolution = function ( data,userToken ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "X-authenticated-user-token" : userToken
                 },
@@ -438,7 +365,6 @@ const getProfile = function ( token ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 }
@@ -493,7 +419,6 @@ const updateUserProfile = function ( token,updateData ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 },
@@ -541,7 +466,6 @@ const userPrivatePrograms = function ( token ) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 }
@@ -594,7 +518,6 @@ const getUserOrganisationsAndRootOrganisations = function ( token,userId = "" ) 
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 }
@@ -629,62 +552,6 @@ const getUserOrganisationsAndRootOrganisations = function ( token,userId = "" ) 
         }
     })
 }
-/**
-  * Get presigned url
-  * @function
-  * @name getPreSignedUrl
-  * @param {Array} fileNames - array of filenames
-  * @returns {JSON} - preSigned urls.
-*/
-
-const getPreSignedUrl = function (fileNames) {
-    return new Promise(async (resolve, reject) => {
-        try {
-            
-            let filePreSignedUrl = KENDRA_URL;
-
-            let bodyData = {
-                fileNames: fileNames
-            }
-            if ( process.env.CLOUD_STORAGE === "GC" ) {
-                filePreSignedUrl = filePreSignedUrl + CONSTANTS.endpoints.PRESIGNED_GCP_URL;
-                bodyData.bucket = process.env.BUCKET_NAME;
-            } else if (process.env.CLOUD_STORAGE === "AWS" ) {
-                filePreSignedUrl = filePreSignedUrl + CONSTANTS.endpoints.PRESIGNED_AWS_URL;
-                bodyData.bucket = process.env.BUCKET_NAME;
-            } else {
-                filePreSignedUrl = filePreSignedUrl + CONSTANTS.endpoints.PRESIGNED_AZURE_URL;
-                bodyData.bucket = process.env.BUCKET_NAME;
-            }
-
-
-            const options = {
-                headers : {
-                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
-                },
-                json : bodyData
-            };
-            
-            request.post(filePreSignedUrl,options,kendraCallback);
-
-            function kendraCallback(err, data) {
-
-                let result = {
-                    success : true
-                };
-                if (err) {
-                    result.success = false;
-                } else {
-                    result["data"] = data.body;
-                }
-                return resolve(result);
-            }
-
-        } catch (error) {
-            return reject(error);
-        }
-    })
-}
 
 
 /**
@@ -708,7 +575,6 @@ const getUsersByEntityAndRole = function (
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
                 }
             };
@@ -761,7 +627,6 @@ const createSolution = function ( bodyData,token ) {
              const options = {
                  headers : {
                      "content-type": "application/json",
-                     AUTHORIZATION : process.env.AUTHORIZATION,
                      "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                      "x-authenticated-user-token" : token
                  },
@@ -822,7 +687,6 @@ const solutionBasedOnRoleAndLocation = function ( token,bodyData,typeAndSubType,
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 },
@@ -879,7 +743,6 @@ const solutionDetailsBasedOnRoleAndLocation = function ( token,bodyData,solution
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    AUTHORIZATION : process.env.AUTHORIZATION,
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
                     "x-authenticated-user-token" : token
                 },
@@ -918,7 +781,6 @@ const solutionDetailsBasedOnRoleAndLocation = function ( token,bodyData,solution
 
 module.exports = {
     getDownloadableUrl : getDownloadableUrl,
-    upload : upload,
     entityTypesDocuments : entityTypesDocuments,
     rolesDocuments : rolesDocuments,
     formDetails : formDetails,
@@ -928,7 +790,6 @@ module.exports = {
     updateUserProfile : updateUserProfile,
     userPrivatePrograms : userPrivatePrograms,
     getUserOrganisationsAndRootOrganisations : getUserOrganisationsAndRootOrganisations,
-    getPreSignedUrl : getPreSignedUrl,
     getUsersByEntityAndRole : getUsersByEntityAndRole,
     createSolution: createSolution,
     solutionBasedOnRoleAndLocation : solutionBasedOnRoleAndLocation,

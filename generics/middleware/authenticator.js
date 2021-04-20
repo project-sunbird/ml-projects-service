@@ -6,10 +6,9 @@
  */
 
 // dependencies
-const sunbirdHelper = require(GENERICS_FILES_PATH + "/services/sunbird");
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
-const accessTokenValidationMode = (process.env.VALIDATE_ACCESS_TOKEN_OFFLINE && process.env.VALIDATE_ACCESS_TOKEN_OFFLINE === "OFF")? "OFF" : "ON";
+const accessTokenValidationMode = "ON";
 const keyCloakPublicKeyPath = (process.env.KEYCLOAK_PUBLIC_KEY_PATH && process.env.KEYCLOAK_PUBLIC_KEY_PATH != "") ? PROJECT_ROOT_DIRECTORY+"/"+process.env.KEYCLOAK_PUBLIC_KEY_PATH+"/" : PROJECT_ROOT_DIRECTORY+"/"+"keycloak-public-keys/" ;
 
 var respUtil = function (resp) {
@@ -139,26 +138,6 @@ module.exports = async function (req, res, next, token = "") {
     } else {
       return res.status(HTTP_STATUS_CODE["unauthorized"].status).send(respUtil(rspObj));
     }
-  }else{
-
-    sunbirdHelper
-      .verifyToken(token)
-      .then(async userDetails => {
-        if (userDetails.result.isValid == true) {
-          req.userDetails = {};
-          req.userDetails = userDetails.result;
-          req.userDetails['userToken'] = token;
-          next();
-        } else {
-          rspObj.errCode = CONSTANTS.apiResponses.TOKEN_INVALID_CODE;
-          rspObj.errMsg = CONSTANTS.apiResponses.TOKEN_INVALID_MESSAGE;
-          rspObj.responseCode = HTTP_STATUS_CODE["unauthorized"].status;
-          return res.status(HTTP_STATUS_CODE["unauthorized"].status).send(respUtil(rspObj));
-        }
-
-      }).catch(error => {
-        return res.status(HTTP_STATUS_CODE["unauthorized"].status).send(error);
-      });
   }
 
 

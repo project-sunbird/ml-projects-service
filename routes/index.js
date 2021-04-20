@@ -7,14 +7,13 @@
 
 // Dependencies
 const authenticator = require(PROJECT_ROOT_DIRECTORY + "/generics/middleware/authenticator");
-const slackClient = require(PROJECT_ROOT_DIRECTORY + "/generics/helpers/slack-communications");
 const pagination = require(PROJECT_ROOT_DIRECTORY + "/generics/middleware/pagination");
 const fs = require("fs");
 const inputValidator = require(PROJECT_ROOT_DIRECTORY + "/generics/middleware/validator");
 
 module.exports = function (app) {
 
-  const APPLICATION_BASE_URL = process.env.APPLICATION_BASE_URL;
+  const APPLICATION_BASE_URL = "/";
   
   if (process.env.NODE_ENV !== "testing") {
     app.use(APPLICATION_BASE_URL, authenticator);
@@ -93,10 +92,6 @@ module.exports = function (app) {
           });
         }
 
-        if(ENABLE_FILE_LOGGING === "ON") {
-          LOGGER.info("Response:", result);
-        }
-
         if(ENABLE_CONSOLE_LOGGING === "ON") {
           console.log('-------------------Response log starts here-------------------');
           console.log(result);
@@ -142,12 +137,6 @@ module.exports = function (app) {
             toLogObject["errorStack"] = error.errorObject.stack;
           }
   
-          slackClient.sendMessageToSlack(_.merge(toLogObject, customFields));
-
-          if (ENABLE_FILE_LOGGING === "ON") {
-            EXCEPTION_LOGGER.info(toLogObject);
-          }
-
           if (ENABLE_CONSOLE_LOGGING === "ON") {
             console.log('-------------------Response log starts here-------------------');
             console.log(toLogObject);

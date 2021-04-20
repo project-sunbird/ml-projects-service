@@ -9,14 +9,11 @@
   * Mongodb Database configuration.
   * @function
   * @name mongodb_connect
-  * @param {Object} configuration - mongodb database configuration.
-*/
+ */
 
-const mongodb_connect = function (configuration) {
+const mongodb_connect = function () {
   
-  global.database = require("./db/mongodb")(
-    configuration
-  );
+  global.database = require("./db/mongodb")();
 
   global.ObjectId = database.ObjectId;
   global.Abstract = require("../generics/abstract");
@@ -26,30 +23,17 @@ const mongodb_connect = function (configuration) {
   * Kafka connection.
   * @function
   * @name kafka_connect
-  * @param {Object} kafkaConfiguration - Kafka configuration.
 */
 
-const kafka_connect = function(kafkaConfiguration) {
-  global.kafkaClient = require("./kafka")(kafkaConfiguration);
+const kafka_connect = function() {
+  global.kafkaClient = require("./kafka")();
 };
 
-// Configuration data.
 
-const configuration = {
-  mongodb: {
-    host : process.env.MONGODB_URL,
-    port : process.env.MONGODB_PORT,
-    database : process.env.MONGODB_DATABASE_NAME
-  },
-  kafka : {
-    host: process.env.KAFKA_URL,
-    topics : {
-      submission : process.env.SUBMISSION_TOPIC
-    }
-  }
+mongodb_connect();
+kafka_connect();
+
+module.exports = {
+  mongodb_connect,
+  kafka_connect
 };
-
-mongodb_connect(configuration.mongodb);
-kafka_connect(configuration.kafka);
-
-module.exports = configuration;

@@ -27,7 +27,6 @@ module.exports = function () {
   require("./connections");
 
   global.ENABLE_CONSOLE_LOGGING = process.env.ENABLE_CONSOLE_LOGGING || "OFF";
-  global.ENABLE_FILE_LOGGING = process.env.ENABLE_FILE_LOGGING || "OFF";
 
   global.HTTP_STATUS_CODE = 
   require(GENERICS_FILES_PATH + "/http-status-codes");
