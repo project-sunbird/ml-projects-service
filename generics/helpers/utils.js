@@ -3,9 +3,10 @@
  * author : Aman Karki
  * Date : 13-July-2020
  * Description : All utility functions.
- */
-
- /**
+*/
+// Dependencies
+const {validate : uuidValidate,v4 : uuidV4} = require('uuid');
+/**
   * convert camel case to title case.
   * @function
   * @name camelCaseToTitleCase
@@ -170,6 +171,99 @@ function epochTime() {
   return currentDate;
 }
 
+/**
+  * Convert Project Status
+  * @function
+  * @name convertProjectStatus
+  * @returns {String} returns converted project status
+  */
+
+function convertProjectStatus(status) {
+
+    let convertedStatus;
+ 
+    if ( status == CONSTANTS.common.NOT_STARTED_STATUS ) {
+        convertedStatus = CONSTANTS.common.STARTED;
+    } else if ( status == CONSTANTS.common.COMPLETED_STATUS ) {
+        convertedStatus = CONSTANTS.common.SUBMITTED_STATUS;
+    } else {
+        convertedStatus = status;
+    } 
+    
+    return convertedStatus;
+}
+
+/**
+  * Revert Project Status For Older App
+  * @function
+  * @name revertProjectStatus
+  * @returns {String} returns reverted project status
+  */
+
+ function revertProjectStatus(status) {
+
+  let revertedStatus;
+
+  if ( status == CONSTANTS.common.STARTED ) {
+      revertedStatus = CONSTANTS.common.NOT_STARTED_STATUS;
+  } else if ( status == CONSTANTS.common.SUBMITTED_STATUS ) {
+      revertedStatus = CONSTANTS.common.COMPLETED_STATUS;
+  } else {
+      revertedStatus = status;
+  } 
+
+  return revertedStatus;
+}
+
+/**
+   * revert status or not
+   * @method
+   * @name revertStatusorNot 
+   * @param {String} appVersion - app Version.
+   * @returns {Boolean} - true or false
+*/
+
+function revertStatusorNot( appVersion ) {
+
+  let versions = ["4.10", "4.11", "4.12" ];
+
+  let appVer = appVersion.split('.',2).join('.');
+  if ( versions.includes(appVer)) {
+      return false
+  } else {
+
+      let appVersionNo = Number(appVer);
+      if ( !isNaN(appVersionNo) && appVersionNo < 4.7 ) {
+          return true
+      } else {
+          return false
+      }
+  }
+
+}
+
+/**
+  * check whether string is valid uuid.
+  * @function
+  * @name checkValidUUID
+  * @param {String} uuids 
+  * @returns {Boolean} returns a Boolean value true/false
+*/
+
+function checkValidUUID(uuids) {
+
+  var validateUUID = true;
+  if(Array.isArray(uuids)){
+      for (var i = 0; uuids.length > i; i++) {
+          if(!uuidValidate(uuids[i])){
+            validateUUID = false
+          }
+      }
+  }else {
+     validateUUID = uuidValidate(uuids);
+  }
+  return validateUUID;
+}
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
   lowerCase : lowerCase,
@@ -179,5 +273,9 @@ module.exports = {
   convertStringToBoolean : convertStringToBoolean,
   getAllBooleanDataFromModels : getAllBooleanDataFromModels,
   epochTime : epochTime,
-  isValidMongoId : isValidMongoId
+  isValidMongoId : isValidMongoId,
+  convertProjectStatus : convertProjectStatus,
+  revertProjectStatus:revertProjectStatus,
+  revertStatusorNot:revertStatusorNot,
+  checkValidUUID : checkValidUUID
 };

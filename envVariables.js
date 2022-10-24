@@ -35,6 +35,10 @@ let enviromentVariables = {
   "KAFKA_URL" : {
     "message" : "Required",
     "optional" : false
+  },
+  "USER_SERVICE_URL" : {
+    "message" : "Required user service base url",
+    "optional" : false
   }
 }
 
@@ -44,53 +48,66 @@ module.exports = function() {
   Object.keys(enviromentVariables).forEach(eachEnvironmentVariable=>{
   
     let tableObj = {
-      [eachEnvironmentVariable] : ""
+      [eachEnvironmentVariable] : "PASSED"
     };
-
-    if( 
-      enviromentVariables[eachEnvironmentVariable].requiredIf
-      && process.env[enviromentVariables[eachEnvironmentVariable].requiredIf.key] 
-      && process.env[enviromentVariables[eachEnvironmentVariable].requiredIf.key] === enviromentVariables[eachEnvironmentVariable].requiredIf.value
-    ) {
-      tableObj[eachEnvironmentVariable].optional = false;
-    }
   
-    if( 
-      !(process.env[eachEnvironmentVariable]) && 
-      !(enviromentVariables[eachEnvironmentVariable].optional)
-    ) {
+    let keyCheckPass = true;
+
+
+    if(enviromentVariables[eachEnvironmentVariable].optional === true
+      && enviromentVariables[eachEnvironmentVariable].requiredIf
+      && enviromentVariables[eachEnvironmentVariable].requiredIf.key
+      && enviromentVariables[eachEnvironmentVariable].requiredIf.key != ""
+      && enviromentVariables[eachEnvironmentVariable].requiredIf.operator
+      && validRequiredIfOperators.includes(enviromentVariables[eachEnvironmentVariable].requiredIf.operator)
+      && enviromentVariables[eachEnvironmentVariable].requiredIf.value
+      && enviromentVariables[eachEnvironmentVariable].requiredIf.value != "") {
+        switch (enviromentVariables[eachEnvironmentVariable].requiredIf.operator) {
+          case "EQUALS":
+            if(process.env[enviromentVariables[eachEnvironmentVariable].requiredIf.key] === enviromentVariables[eachEnvironmentVariable].requiredIf.value) {
+              enviromentVariables[eachEnvironmentVariable].optional = false;
+            }
+            break;
+          case "NOT_EQUALS":
+              if(process.env[enviromentVariables[eachEnvironmentVariable].requiredIf.key] != enviromentVariables[eachEnvironmentVariable].requiredIf.value) {
+                enviromentVariables[eachEnvironmentVariable].optional = false;
+              }
+              break;
+          default:
+            break;
+        }
+    }
       
-      success = false;
-
-      if( 
-        enviromentVariables[eachEnvironmentVariable].default &&
-        enviromentVariables[eachEnvironmentVariable].default != "" 
-      ) {
-        process.env[eachEnvironmentVariable] = 
-        enviromentVariables[eachEnvironmentVariable].default;
+    if(enviromentVariables[eachEnvironmentVariable].optional === false) {
+      if(!(process.env[eachEnvironmentVariable])
+        || process.env[eachEnvironmentVariable] == "") {
+        success = false;
+        keyCheckPass = false;
+      } else if (enviromentVariables[eachEnvironmentVariable].possibleValues
+        && Array.isArray(enviromentVariables[eachEnvironmentVariable].possibleValues)
+        && enviromentVariables[eachEnvironmentVariable].possibleValues.length > 0) {
+        if(!enviromentVariables[eachEnvironmentVariable].possibleValues.includes(process.env[eachEnvironmentVariable])) {
+          success = false;
+          keyCheckPass = false;
+          enviromentVariables[eachEnvironmentVariable].message += ` Valid values - ${enviromentVariables[eachEnvironmentVariable].possibleValues.join(", ")}`
+        }
       }
+    }
 
-      if(
-        enviromentVariables[eachEnvironmentVariable] && 
-        enviromentVariables[eachEnvironmentVariable].message !== ""
-      ) {
+    if((!(process.env[eachEnvironmentVariable])
+      || process.env[eachEnvironmentVariable] == "")
+      && enviromentVariables[eachEnvironmentVariable].default
+      && enviromentVariables[eachEnvironmentVariable].default != "") {
+      process.env[eachEnvironmentVariable] = enviromentVariables[eachEnvironmentVariable].default;
+    }
+
+    if(!keyCheckPass) {
+      if(enviromentVariables[eachEnvironmentVariable].message !== "") {
         tableObj[eachEnvironmentVariable] = 
         enviromentVariables[eachEnvironmentVariable].message;
       } else {
-        tableObj[eachEnvironmentVariable] = "required";
+        tableObj[eachEnvironmentVariable] = `FAILED - ${eachEnvironmentVariable} is required`;
       }
-
-    } else {
-
-      tableObj[eachEnvironmentVariable] = "Passed";
-      
-      if( 
-        enviromentVariables[eachEnvironmentVariable].possibleValues &&
-        !enviromentVariables[eachEnvironmentVariable].possibleValues.includes(process.env[eachEnvironmentVariable])
-      ) {
-        tableObj[eachEnvironmentVariable] = ` Valid values - ${enviromentVariables[eachEnvironmentVariable].possibleValues.join(", ")}`;
-      }
-      
     }
 
     tableData.push(tableObj);
@@ -102,5 +119,6 @@ module.exports = function() {
     success : success
   }
 }
+
 
 

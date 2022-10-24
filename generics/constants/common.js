@@ -21,6 +21,8 @@ module.exports = {
     "COMPLETED_STATUS" : "completed",
     "INPROGRESS_STATUS" : "inProgress",
     "NOT_STARTED_STATUS" : "notStarted",
+    "STARTED":"started",
+    "SUBMITTED_STATUS":"submitted",
     "OBSERVATION" : "observation",
     "PUBLISHED_STATUS" : "published",
     "LEAD_ASSESSOR" : "LEAD_ASSESSOR",
@@ -38,6 +40,15 @@ module.exports = {
     "CRITERIA_LEVEL_REPORT" :  "criteriaLevelReport",
     "LINK" : "link",
     "DEFAULT_SUBMISSION_REQUIRED" : 1,
-    "STARTED" : "started",
-
+    "TASK_SEQUENCE" : "taskSequence",
+    "CHILDREN" : "children",
+    "ATTACHMENT_TYPE_LINK" : "link",
+    "PROJECT_ATTACHMENT" : "project",
+    "TASK_ATTACHMENT" : "task",
+    "DEFAULT_TASK_COMPLETED" : 0,
+    "IMAGE_DATA_TYPE" : "image/jpeg",
+    "DISTRICT": "district",
+    "SERVER_TIME_OUT" : 5000,
+    "OK" : "OK",
+    "PROJECT" : "project"
 };

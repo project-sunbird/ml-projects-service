@@ -13,9 +13,6 @@ module.exports = (req) => {
             req.checkParams('_id').exists().withMessage("required project template id");
             req.checkQuery('solutionId').exists().withMessage("required solution id");
         },
-        details : function () {
-            req.checkParams("_id").exists().withMessage("required project template external id");
-        }
     }
 
     if (projectTemplateValidator[req.params.method]) {

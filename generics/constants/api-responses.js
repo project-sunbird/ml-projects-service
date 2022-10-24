@@ -116,6 +116,13 @@ module.exports = {
     "PROJECT_TEMPLATE_DETAILS_FETCHED": "Successfully fetched project template details",
     "PROJECT_TEMPLATE_EXISTS_IN_SOLUTION" : "Project templates already exists in solution",
     "IMPORTED_PROJECTS_FETCHED" : "List of imported projects fetched",
-    "MIN_NO_OF_SUBMISSION_REQUIRED_MIS_MATCHED" : "minNoOfSubmissionsRequired should be 1 because allowMultipleAssessemts is false"
-
+    "MIN_NO_OF_SUBMISSION_REQUIRED_MIS_MATCHED" : "minNoOfSubmissionsRequired should be 1 because allowMultipleAssessemts is false",
+    "TASKS_MARKED_AS_ISDELETABLE_FALSE": "Successfully updated the tasks",
+    "TEMPLATE_TASK_NOT_UPDATED": "Could not updated template task",
+    "PROJECT_TEMPLATE_UPDATED" : "Successfully updated project template",
+    "PROJECT_TEMPLATE_TASK_UPDATED" : "Successfully updated project template task",
+    "TEMPLATE_ID_OR_LINK_REQUIRED" : "TemplateId or Link either one is required",
+    "TEMPLATE_ID_NOT_FOUND_IN_SOLUTION" : "Could not found templateId in solution",
+    "FAILED_TO_SYNC_PROJECT_ALREADY_SUBMITTED" : "Failed to sync, Project is already Submitted",
+    "SOLUTION_ID_AND_USERPROFILE_REQUIRED": "Required solution Id and userProfile"
 };

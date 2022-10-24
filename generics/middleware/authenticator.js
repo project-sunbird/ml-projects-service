@@ -49,14 +49,14 @@ module.exports = async function (req, res, next, token = "") {
 
   // Allow search endpoints for non-logged in users.
   let guestAccess = false;
-  let guestAccessPaths = [];
+  let guestAccessPaths = ["/dataPipeline/","/templates/details"];
   await Promise.all(guestAccessPaths.map(async function (path) {
     if (req.path.includes(path)) {
       guestAccess = true;
     }
   }));
   
-  if(guestAccess==true) {
+  if( guestAccess == true && !token ) {
     next();
     return;
   }
@@ -75,6 +75,10 @@ module.exports = async function (req, res, next, token = "") {
       rspObj.errMsg = CONSTANTS.apiResponses.TOKEN_MISSING_MESSAGE;
       rspObj.responseCode = HTTP_STATUS_CODE['unauthorized'].status;
       return res.status(HTTP_STATUS_CODE["unauthorized"].status).send(respUtil(rspObj));
+    }
+    if(!token){
+      next();
+      return;
     }
   }
 

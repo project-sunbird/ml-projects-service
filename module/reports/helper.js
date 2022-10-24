@@ -34,16 +34,17 @@ module.exports = class ReportsHelper {
     * @param {Boolean} getPdf - pdf true or false
     * @returns {Object} Entity report.
    */
-    static entity(entityId = "", userId, userToken, userName, reportType, programId = "", getPdf) {
+    static entity(entityId = "", userId, userToken, userName, reportType, programId = "", getPdf,appVersion) {
         return new Promise(async (resolve, reject) => {
             try {
-
                 let query = { };
+                
                 if (entityId) {
-                    query["entityId"] = ObjectId(entityId);
+                    query["entityId"] = entityId;
                 } else {
                     query["userId"] = userId
                 }
+
 
                 let dateRange = await _getDateRangeofReport(reportType);
                 let endOf = dateRange.endOf;
@@ -64,14 +65,14 @@ module.exports = class ReportsHelper {
                     { "syncedAt": { $gte: new Date(startFrom), $lte: new Date(endOf) } },
                     { "tasks": { $elemMatch: { isDeleted: { $ne: true },syncedAt: { $gte: new Date(startFrom), $lte: new Date(endOf) } } } },
                 ]
-
+                
                 const projectDetails = await projectQueries.projectDocument(
                     query,
-                    ["programId","programInformation.name", "entityInformation.name", "taskReport", "status", "tasks", "categories"],
+                    ["programId","programInformation.name", "entityInformation.name", "taskReport", "status", "tasks", "categories", "endDate"],
                     []
                 );
 
-
+                
                 let tasksReport = {
                     "total": 0,
                     "overdue": 0
@@ -88,9 +89,9 @@ module.exports = class ReportsHelper {
                     "total": 0,
                     "overdue": 0,
                 };
-                projectReport[CONSTANTS.common.COMPLETED_STATUS] = 0;
+                projectReport[CONSTANTS.common.SUBMITTED_STATUS] = 0;
                 projectReport[CONSTANTS.common.INPROGRESS_STATUS] = 0;
-                projectReport[CONSTANTS.common.NOT_STARTED_STATUS] = 0;
+                projectReport[CONSTANTS.common.STARTED] = 0;
 
 
                 let types = await this.types();
@@ -100,8 +101,10 @@ module.exports = class ReportsHelper {
                     }
                 });
 
-                if (!projectDetails.length > 0) {
 
+                if ( !projectDetails.length > 0 ) {
+
+                  
                     if (getPdf == true) {
 
                         let reportTaskData = {};
@@ -123,7 +126,7 @@ module.exports = class ReportsHelper {
                             projects: projectReport,
 
                         }
-
+                        
                         let response = await reportService.entityReport(userToken, pdfRequest);
 
                         if (response && response.success == true) {
@@ -146,6 +149,8 @@ module.exports = class ReportsHelper {
                         }
 
                     } else {
+
+                        
                         return resolve({
                             message: CONSTANTS.apiResponses.REPORTS_DATA_NOT_FOUND,
                             data: {
@@ -161,8 +166,8 @@ module.exports = class ReportsHelper {
                 }
                
                 await Promise.all(projectDetails.map(async function (project) {
-
-                    if (project.categories) {
+                    
+                    if ( project.categories ) {
                         project.categories.map(category => {
 
                             if( 
@@ -183,61 +188,73 @@ module.exports = class ReportsHelper {
                         categories['total'] = categories['total'] + project.categories.length;
                     }
 
-                    let todayDate = moment(project.endDate, "DD.MM.YYYY");
-                    let endDate = moment().format();
-                    if (project.status == CONSTANTS.common.COMPLETED_STATUS) {
+                    //Add data into projectReport and check project overdue.
+                    if ( project.status == CONSTANTS.common.SUBMITTED_STATUS ) {
 
-                        projectReport[CONSTANTS.common.COMPLETED_STATUS] = projectReport[CONSTANTS.common.COMPLETED_STATUS] + 1;
+                        projectReport[CONSTANTS.common.SUBMITTED_STATUS] = projectReport[CONSTANTS.common.SUBMITTED_STATUS] + 1;
 
-                    } else if (project.status == CONSTANTS.common.INPROGRESS_STATUS) {
-
-                        if (todayDate.diff(endDate, 'days') < 1) {
+                    } else if ( project.status == CONSTANTS.common.INPROGRESS_STATUS || project.status == CONSTANTS.common.STARTED ) {
+                        //Returns project overdue status true/false.
+                        let overdue = _getOverdueStatus( project.endDate );
+            
+                        if ( overdue ) {
                             projectReport['overdue'] = projectReport['overdue'] + 1;
                         } else {
-                            projectReport[CONSTANTS.common.INPROGRESS_STATUS] = projectReport[CONSTANTS.common.INPROGRESS_STATUS] + 1;
-                        }
-
-                    } else if (project.status == CONSTANTS.common.NOT_STARTED_STATUS) {
-
-                        if (todayDate.diff(endDate, 'days') < 1) {
-                            projectReport['overdue'] = projectReport['overdue'] + 1;
-                        } else {
-                            projectReport[CONSTANTS.common.NOT_STARTED_STATUS] = projectReport[CONSTANTS.common.NOT_STARTED_STATUS] + 1;
+                            projectReport[project.status] = projectReport[project.status] + 1;
                         }
                     }
-                    projectReport["total"] = projectReport[CONSTANTS.common.NOT_STARTED_STATUS] + 
+                    //get total project count
+                    projectReport["total"] = projectReport[CONSTANTS.common.STARTED] + 
                     projectReport['overdue'] + projectReport[CONSTANTS.common.INPROGRESS_STATUS] +
-                    projectReport[CONSTANTS.common.COMPLETED_STATUS];
+                    projectReport[CONSTANTS.common.SUBMITTED_STATUS];
 
-                    if (project.taskReport) {
-                        let keys = Object.keys(project.taskReport);
-                        keys.map(key => {
-                            if (tasksReport[key]) {
+                    //Get tasks summary deatail of project.
+                    if ( project.taskReport ) {
+                        let keys = Object.keys( project.taskReport );
+                        keys.map( key => {
+                            if ( tasksReport[key] ) {
                                 tasksReport[key] = tasksReport[key] + project.taskReport[key];
                             } else {
-                                tasksReport[key] = project.taskReport[key];
+                                tasksReport[key] = project.taskReport[key];   
                             }
                         });
                     }
 
+                    //Get number of tasks overdued.
                     await Promise.all(project.tasks.map(task => {
-                        let taskCurrentDate = moment(task.endDate, "DD.MM.YYYY");
-                        if (taskCurrentDate.diff(endDate, 'days') < 1) {
-                            if (tasksReport['overdue']) {
-                                tasksReport['overdue'] = tasksReport['overdue'] + 1;
-                            } else {
-                                tasksReport['overdue'] = 1;
-                            }
-                            if(tasksReport[task.status]){
-                                tasksReport[task.status] = tasksReport[task.status] - 1;
-                            }
-                        }
-                    }));
+                        //consider task only if not deleted
+                        if ( task.isDeleted == false && task.status != CONSTANTS.common.COMPLETED_STATUS ){
 
+                            //Returns true or false
+                            let overdue = _getOverdueStatus( task.endDate );
+                            
+                            if ( overdue ) {
+                                
+                                if ( tasksReport['overdue'] ) {
+                                    tasksReport['overdue'] = tasksReport['overdue'] + 1;
+                                } else {
+                                    tasksReport['overdue'] = 1;
+                                }
+                                if ( tasksReport[task.status] ) {
+                                    tasksReport[task.status] = tasksReport[task.status] - 1;
+                                }
+
+                            }    
+                        }
+                        
+                    }));
                 }));
 
-                if (getPdf == true) {
+                if ( UTILS.revertStatusorNot(appVersion) ) {
 
+                    projectReport[CONSTANTS.common.COMPLETED_STATUS] = projectReport[CONSTANTS.common.SUBMITTED_STATUS];
+                    projectReport[CONSTANTS.common.NOT_STARTED_STATUS] = projectReport[CONSTANTS.common.STARTED];
+                    delete projectReport[CONSTANTS.common.SUBMITTED_STATUS];
+                    delete projectReport[CONSTANTS.common.STARTED];
+                }
+
+                if ( getPdf == true ) {
+                   
                     let reportTaskData = {};
                     Object.keys(tasksReport).map(taskData => {
                         reportTaskData[UTILS.camelCaseToTitleCase(taskData)] = tasksReport[taskData];
@@ -269,7 +286,8 @@ module.exports = class ReportsHelper {
                     if (entityId != "") {
                         pdfRequest['entityName'] = projectDetails[0].entityInformation.name;
                     }
-
+                   
+                    //send data to report service to generate PDF.
                     let response = await reportService.entityReport(userToken, pdfRequest);
                     if (response && response.success == true) {
                         return resolve({
@@ -303,6 +321,7 @@ module.exports = class ReportsHelper {
                 }
             } catch (error) {
                 return resolve({
+                   
                     success: false,
                     message: error.message,
                     data: false
@@ -310,6 +329,7 @@ module.exports = class ReportsHelper {
             }
         })
     }
+
 
 
     /**
@@ -335,20 +355,19 @@ module.exports = class ReportsHelper {
                         $exists : true
                     }
                 };
-
-                if(entityId != "" && UTILS.isValidMongoId(entityId)) {
-                    query.entityId = ObjectId(entityId);
+               
+                if( entityId != "" ) {
+                    query.entityId = entityId;
                 } 
                 
                 if (userRole != "") {
                     query.userRole = {
                         $in : [
                             "",
-                            userRole
+                            ...userRole.split(",")
                         ]
                     }
                 }
-
 
                 let searchQuery = [];
                 if (search !== "") {
@@ -468,11 +487,12 @@ module.exports = class ReportsHelper {
                 };
 
                 if (entityId) {
-                    query["entityId"] = ObjectId(entityId);
+                    query["entityId"] = entityId;
                 } else {
                     query["userId"] = userId
                 }
 
+               
                 let chartObject = [];
                 let dateRange = await _getDateRangeofReport(reportType);
                 let endOf = dateRange.endOf;
@@ -596,9 +616,9 @@ module.exports = class ReportsHelper {
                                     }
 
                                     let color = "";
-                                    if (status == CONSTANTS.common.NOT_STARTED_STATUS) {
+                                    if (status == CONSTANTS.common.STARTED) {
                                         color = "#f5f5f5";
-                                    } else if (status == CONSTANTS.common.COMPLETED_STATUS) {
+                                    } else if (status == CONSTANTS.common.SUBMITTED_STATUS ) {
                                         color = "#20ba8d";
                                     } else if (status == CONSTANTS.common.INPROGRESS_STATUS) {
                                         color = "#ef8c2b";
@@ -636,6 +656,7 @@ module.exports = class ReportsHelper {
             }
         });
     }
+
     
 }
 
@@ -666,5 +687,24 @@ function _getDateRangeofReport(reportType) {
 
 }
 
+/**
+  * Get overdue status
+  * @method
+  * @name _getOverdueStatus
+  * @param {String} endDate - date that task or project suppose to be finished.
+  * @returns {Boolean} - returns overdue status
+ */
 
+function _getOverdueStatus( endDate ) {
+    let overdue = false;
+    let today = moment().format();
+    let endDateObject = moment( endDate, 'YYYY-MM-DD' );
+
+    //Find difference between present date and end date
+    if ( endDateObject.diff( today, 'days' ) < 1 ) {
+        overdue = true;
+    }
+
+    return overdue;
+}
 

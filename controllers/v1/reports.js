@@ -78,6 +78,7 @@ module.exports = class Reports {
                     req.query.reportType,
                     req.query.programId ? req.query.programId : "",
                     req.query.requestPdf ? (req.query.requestPdf).toLowerCase() =="true" ? true :false : false,
+                    req.headers['x-app-ver']
                 );
                 
                 return resolve({
@@ -95,12 +96,18 @@ module.exports = class Reports {
         })
     }
 
+    
+
     /**
-    * @api {get} /improvement-project/api/v1/reports/getProgramsByEntity/:_id
+    * @api {post} /improvement-project/api/v1/reports/getProgramsByEntity/:_id
     * Get programs by entity.
     * @apiVersion 1.0.0
     * @apiGroup Reports
-    * @apiSampleRequest /improvement-project/api/v1/reports/getProgramsByEntity/5ddf79ff47e9260268c9547a?page=1&limi1=10&search=a
+    * @apiSampleRequest /improvement-project/api/v1/reports/getProgramsByEntity/5ddf79ff47e9260268c9547a?page=1&limit=10&search=a
+    * @apiParamExample {json} Request:
+    {
+        "role": "HM,DEO",
+    }
     * @apiParamExample {json} Response:
     * {
         "message": "Programs fetched successfully",

@@ -45,7 +45,8 @@ module.exports = {
         },
         isDeleted : {
             type : Boolean,
-            default : false
+            default : false,
+            index : true
         },
         recommendedFor : {
             type : Array,
@@ -74,9 +75,6 @@ module.exports = {
         },
         entityType : {
             type : String
-        },
-        entityTypeId : {
-            type : "ObjectId"
         },
         taskSequence : {
             type : Array,

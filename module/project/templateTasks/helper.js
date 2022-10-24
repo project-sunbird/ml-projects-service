@@ -16,6 +16,7 @@ const learningResourcesHelper = require(MODULES_BASE_PATH + "/learningResources/
 const surveyService = require(GENERICS_FILES_PATH + "/services/survey");
 const projectTemplateTaskQueries = require(DB_QUERY_BASE_PATH + "/projectTemplateTask");
 const projectTemplateQueries = require(DB_QUERY_BASE_PATH + "/projectTemplates");
+const solutionsQueries = require(DB_QUERY_BASE_PATH + "/solutions");
 
 module.exports = class ProjectTemplateTasksHelper {
 
@@ -76,7 +77,7 @@ module.exports = class ProjectTemplateTasksHelper {
 
                     let tasksData = await projectTemplateTaskQueries.taskDocuments(
                         filterData,
-                        ["_id","children","externalId","projectTemplateId","parentId"]
+                        ["_id","children","externalId","projectTemplateId","parentId", "taskSequence", "hasSubTasks"]
                     );
 
                     if( tasksData.length > 0 ) {
@@ -94,7 +95,7 @@ module.exports = class ProjectTemplateTasksHelper {
                 await projectTemplateQueries.templateDocument({
                     status : CONSTANTS.common.PUBLISHED,
                     _id : projectTemplateId
-                },["_id","entityType","externalId"]);
+                },["_id","entityType","externalId", "taskSequence"]);
 
                 if( !projectTemplate.length > 0 ) {
                     throw {
@@ -244,14 +245,14 @@ module.exports = class ProjectTemplateTasksHelper {
                             } else {
 
                                 let projectionFields = _solutionDocumentProjectionFieldsForTask();
-                                allValues.solutionDetails.minNoOfSubmissionsRequired = CONSTANTS.common.DEFAULT_SUBMISSION_REQUIRED;
+                                allValues.solutionDetails["minNoOfSubmissionsRequired"] = CONSTANTS.common.DEFAULT_SUBMISSION_REQUIRED;
                                 
                                 if (parsedData.minNoOfSubmissionsRequired && parsedData.minNoOfSubmissionsRequired != "" ) {
 
                                     // minNoOfSubmissionsRequired present in csv
-                                    if (parsedData.minNoOfSubmissionsRequired > CONSTANTS.common.DEFAULT_SUBMISSION_REQUIRED ) {
+                                    if ( parsedData.minNoOfSubmissionsRequired > CONSTANTS.common.DEFAULT_SUBMISSION_REQUIRED ) {
                                         if ( solutionData[parsedData.solutionId].allowMultipleAssessemts ) {
-                                            allValues.solutionDetails.minNoOfSubmissionsRequired = parsedData.minNoOfSubmissionsRequired;
+                                            allValues.solutionDetails["minNoOfSubmissionsRequired"] = parsedData.minNoOfSubmissionsRequired;
                                         } 
                                     }
 
@@ -262,11 +263,10 @@ module.exports = class ProjectTemplateTasksHelper {
                                     }
                                 }
 
-                                allValues.solutionDetails = 
-                                _.pick(
+                                Object.assign(allValues.solutionDetails, _.pick(
                                     solutionData[parsedData.solutionId],
                                     projectionFields
-                                );
+                                ))
 
                             }
 
@@ -377,6 +377,30 @@ module.exports = class ProjectTemplateTasksHelper {
                             }
                         }
 
+                         //update solution project key 
+                        if ( taskData.type == CONSTANTS.common.OBSERVATION && 
+                            taskData.solutionDetails && 
+                            taskData.solutionDetails._id 
+                        ) {
+
+                            let updateSolutionObj = {
+                                "$set" : {}
+                            };
+
+                            updateSolutionObj["$set"]["referenceFrom"] = CONSTANTS.common.PROJECT;
+                            updateSolutionObj["$set"]["project"] = {
+                                _id: template._id.toString(),
+                                taskId: taskData._id.toString()
+                            };
+
+                            await solutionsQueries.updateSolutionDocument
+                            (
+                                { _id : taskData.solutionDetails._id },
+                                updateSolutionObj
+                            )
+                        }
+
+                        //update project template
                         await projectTemplateQueries.updateProjectTemplateDocument
                         (
                             { _id : template._id },
@@ -432,16 +456,26 @@ module.exports = class ProjectTemplateTasksHelper {
                 }
 
                 let pendingItems = [];
+                let taskSequence = csvData.data.template.taskSequence && csvData.data.template.taskSequence.length > 0 
+                    ? csvData.data.template.taskSequence: [];
+
+                let checkMandatoryTask = [];
 
                 for ( let task = 0; task < tasks.length ; task ++ ) {
                     let currentData = UTILS.valueParser(tasks[task]);
                     currentData.createdBy = currentData.updatedBy = userId;
 
+                    if ( currentData.isDeletable != "" && currentData.isDeletable === "TRUE" ) {
+                        checkMandatoryTask.push(currentData.externalId);
+                    }
+
                     if( 
                         currentData["hasAParentTask"] === "YES" &&
                         !csvData.data.tasks[currentData.parentTaskId]
                     ) {
+
                         pendingItems.push(currentData);
+
                     } else {
                         
                         if( csvData.data.tasks[currentData.externalId] ) {
@@ -456,23 +490,29 @@ module.exports = class ProjectTemplateTasksHelper {
                                 csvData.data.solutionData
                             );
 
+                            if (createdTask._SYSTEM_ID != ""){
+                                taskSequence.push(createdTask.externalId);
+                            }
+
                             input.push(createdTask);
                         }
                     }
                 }
 
+                let childTaskSequence = {};
                 if ( pendingItems && pendingItems.length > 0 ) {
                     
                     for ( let item = 0; item < pendingItems.length ; item ++ ) {
                         
                         let currentData = pendingItems[item];
+
                         currentData.createdBy = currentData.updatedBy = userId;
 
                         if( csvData.data.tasks[currentData.externalId] ) {
                             currentData._SYSTEM_ID = CONSTANTS.apiResponses.PROJECT_TEMPLATE_TASK_EXISTS;
                             input.push(currentData);
                         } else {
-                            
+
                             let createdTask = await this.createOrUpdateTask(
                                 currentData,
                                 csvData.data.template,
@@ -480,10 +520,43 @@ module.exports = class ProjectTemplateTasksHelper {
                                 csvData.data.observationData
                             );
 
+                            if ( createdTask._SYSTEM_ID != "" ) {
+
+                                if (!childTaskSequence.hasOwnProperty(currentData.parentTaskId)){
+                                    childTaskSequence[currentData.parentTaskId] = new Array();
+                                }
+                                childTaskSequence[currentData.parentTaskId].push(currentData.externalId);
+                            }
+
                             input.push(createdTask);
                         }
 
                     }
+                }
+        
+                if ( taskSequence && taskSequence.length > 0 ) {
+                    await projectTemplateQueries.updateProjectTemplateDocument
+                        (
+                            { _id : ObjectId(projectTemplateId) },
+                            { $set : { taskSequence : taskSequence } }
+                        )
+                }
+
+                if ( childTaskSequence && Object.keys(childTaskSequence).length > 0 ) {
+                    for( let pointerToTask in childTaskSequence ) {
+                        await projectTemplateTaskQueries.updateTaskDocument
+                        (
+                            { externalId : pointerToTask },
+                            { $set : { taskSequence : childTaskSequence[pointerToTask] } }
+                        )
+                    }
+                        
+                }
+
+                if ( checkMandatoryTask && checkMandatoryTask.length > 0 ) {
+
+                    await this.checkAndUpdateParentTaskmandatory(checkMandatoryTask);
+                    
                 }
 
                 input.push(null);
@@ -545,6 +618,9 @@ module.exports = class ProjectTemplateTasksHelper {
                     })
                 }
 
+                let updateChildTaskSequence = {};
+                let updateTemplateTaskSequence = new Array();
+                let checkMandatoryTask = [];
                 for ( let task = 0; task < tasks.length ; task ++ ) { 
                     
                     let currentData = UTILS.valueParser(tasks[task]);
@@ -561,6 +637,10 @@ module.exports = class ProjectTemplateTasksHelper {
                     }
 
                     currentData.updatedBy = userId;
+
+                    if ( currentData.isDeletable != "" && currentData.isDeletable === "TRUE" ) {
+                        checkMandatoryTask.push(currentData.externalId);
+                    }
                     
                     let createdTask = 
                     await this.createOrUpdateTask(
@@ -569,6 +649,19 @@ module.exports = class ProjectTemplateTasksHelper {
                         csvData.data.solutionData,
                         true  
                     );
+
+                    if ( createdTask._SYSTEM_ID != "") {
+
+                        if ( currentData.parentTaskId != "" ) {
+                            if ( !updateChildTaskSequence.hasOwnProperty(currentData.parentTaskId)){
+                                updateChildTaskSequence[currentData.parentTaskId] = new Array();
+                            }
+
+                            updateChildTaskSequence[currentData.parentTaskId].push(currentData.externalId);
+                        }else{
+                            updateTemplateTaskSequence.push(currentData.externalId);
+                        }
+                    }
 
                     if( 
                         csvData.data.tasks[currentData._SYSTEM_ID].parentId && 
@@ -588,9 +681,175 @@ module.exports = class ProjectTemplateTasksHelper {
 
                     input.push(createdTask);
                 }
+                
+                let checkTemplateTaskSequence = true;
+                let templateTaskSequence = csvData.data.template.taskSequence;
+
+                if ( templateTaskSequence ) {
+                    checkTemplateTaskSequence = _.isEqual(templateTaskSequence, updateTemplateTaskSequence);
+                }
+                
+                if ( updateTemplateTaskSequence && updateTemplateTaskSequence.length > 0 && checkTemplateTaskSequence == false ) {
+                    await projectTemplateQueries.updateProjectTemplateDocument
+                        (
+                            { _id : ObjectId(projectTemplateId) },
+                            { $set : { taskSequence : updateTemplateTaskSequence } }
+                        )
+                }
+                
+                if ( updateChildTaskSequence && Object.keys(updateChildTaskSequence).length > 0 ) {
+                    for( let pointerToTask in updateChildTaskSequence ) {
+                        await projectTemplateTaskQueries.updateTaskDocument
+                        (
+                            { externalId : pointerToTask },
+                            { $set : { taskSequence : updateChildTaskSequence[pointerToTask] } }
+                        )
+                    }
+                        
+                }
+
+                if ( checkMandatoryTask && checkMandatoryTask.length > 0 ) {
+
+                    await this.checkAndUpdateParentTaskmandatory(checkMandatoryTask);
+                    
+                }
 
                 input.push(null);
 
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * check parent task is mandatory.
+      * @method
+      * @name checkAndUpdateParentTaskmandatory
+      * @param {Array} mandatoryTask - task external Ids.
+      * @returns {Object} tasks.
+     */
+
+    static checkAndUpdateParentTaskmandatory( taskIds = [] ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let updateParentTask = [];
+
+                let taskData = await projectTemplateTaskQueries.taskDocuments(
+                    {   externalId : { $in : taskIds},
+                        hasSubTasks : true
+                    },
+                    ["children"]
+                );
+
+                if ( taskData && taskData.length > 0 ) {
+
+                    for ( let eachTask = 0 ; eachTask < taskData.length ; eachTask ++ ) {
+
+                        let currentTask = taskData[eachTask];
+                        if (currentTask.children && currentTask.children.length > 0) {
+
+                            let childTasks = await projectTemplateTaskQueries.taskDocuments(
+                                {   _id : { $in : currentTask.children}
+                                },
+                                ["isDeletable", "parentId"]
+                            );
+
+                            if ( childTasks && childTasks.length > 0 ) {
+
+                                childTasks.forEach( eachChildTask => {
+                                    if( eachChildTask.isDeletable  === false && eachChildTask.parentId != "" ) {
+                                        updateParentTask.push(eachChildTask.parentId);
+                                    } 
+                                });
+                            } 
+                        }
+                    }
+
+                    if ( updateParentTask && updateParentTask.length > 0 ) {
+                        let updatedTasks = await projectTemplateTaskQueries.updateTaskDocument
+                        (
+                            { _id : { $in : updateParentTask }},
+                            { $set : { isDeletable : false } }
+                        )
+                    }
+                    
+                }
+
+                return resolve({
+                    success: true,
+                    message: CONSTANTS.apiResponses.TASKS_MARKED_AS_ISDELETABLE_FALSE,
+                    data : updateParentTask
+                })
+
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
+    /**
+      * Task update.
+      * @method
+      * @name update
+      * @param {String} taskId - Task id.
+      * @param {Object} taskData - template task updation data
+      * @param {String} userId - logged in user id.
+      * @returns {Array} Project templates task data.
+     */
+
+    static update( taskId, taskData, userId ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let findQuery = {};
+
+                let validateTaskId = UTILS.isValidMongoId(taskId);
+
+                if( validateTaskId ) {
+                  findQuery["_id"] = taskId;
+                } else {
+                  findQuery["externalId"] = taskId;
+                }
+
+                let taskDocument = await projectTemplateTaskQueries.taskDocuments(findQuery, ["_id"]);
+
+                if ( !taskDocument.length > 0 ) {
+                    throw {
+                        status : HTTP_STATUS_CODE.bad_request.status,
+                        message : CONSTANTS.apiResponses.PROJECT_TEMPLATE_TASKS_NOT_FOUND
+                    }
+                }
+
+                let updateObject = {
+                    "$set" : {}
+                };
+
+                let taskUpdateData = taskData;
+
+                Object.keys(taskUpdateData).forEach(updationData=>{
+                    updateObject["$set"][updationData] = taskUpdateData[updationData];
+                });
+
+                updateObject["$set"]["updatedBy"] = userId;
+
+                let taskUpdatedData = await projectTemplateTaskQueries.findOneAndUpdate({
+                    _id :  taskDocument[0]._id
+                }, updateObject, { new : true });
+
+                if( !taskUpdatedData._id ) {
+                    throw {
+                      message : CONSTANTS.apiResponses.TEMPLATE_TASK_NOT_UPDATED
+                    }
+                }
+
+                return resolve({
+                    success : true,
+                    data : taskUpdatedData,
+                    message : CONSTANTS.apiResponses.PROJECT_TEMPLATE_TASK_UPDATED
+                });
+                
             } catch (error) {
                 return reject(error);
             }

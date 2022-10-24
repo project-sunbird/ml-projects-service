@@ -53,7 +53,6 @@ module.exports = class ProjectTemplates {
     ) {
         return new Promise(async (resolve, reject) => {
             try {
-                
                 let queryObject = (filterData != "all") ? filterData : {};
                 let projection = {}
            
@@ -68,7 +67,6 @@ module.exports = class ProjectTemplates {
                        projection[field] = 0;
                    });
                }
-               
                let templates = 
                await database.models.projectTemplates.find(
                    queryObject, 

@@ -21,6 +21,8 @@ const projectTemplateQueries = require(DB_QUERY_BASE_PATH + "/projectTemplates")
 const projectTemplateTaskQueries = require(DB_QUERY_BASE_PATH + "/projectTemplateTask");
 const projectQueries = require(DB_QUERY_BASE_PATH + "/projects");
 const projectCategoriesQueries = require(DB_QUERY_BASE_PATH + "/projectCategories");
+const solutionsQueries = require(DB_QUERY_BASE_PATH + "/solutions");
+
 
 module.exports = class ProjectTemplatesHelper {
 
@@ -39,7 +41,8 @@ module.exports = class ProjectTemplatesHelper {
                 let categoryIds = [];
                 let roleIds = [];
                 let tasksIds = [];
-                let entityTypes = [];
+                // <- Entitytype validation removed {release-5.0.0} - entity generalisation
+                // let entityTypes = [];
 
                 csvData.forEach(template=>{
                     
@@ -67,10 +70,10 @@ module.exports = class ProjectTemplatesHelper {
                             parsedData.recommendedFor
                         );
                     }
-
-                    if( parsedData.entityType ) {
-                        entityTypes.push(parsedData.entityType);
-                    }
+                    // <- Entitytype validation removed {release-5.0.0} - entity generalisation
+                    // if( parsedData.entityType ) {
+                    //     entityTypes.push(parsedData.entityType);
+                    // }
 
                 });
 
@@ -124,37 +127,38 @@ module.exports = class ProjectTemplatesHelper {
                         }
                     }),{});
                 }
+                // <- Entitytype validation removed {release-5.0.0} - entity generalisation
+                // let entityTypesData = {};
 
-                let entityTypesData = {};
-
-                if( entityTypes.length > 0 ) {
+                // if( entityTypes.length > 0 ) {
                     
-                    let entityTypesDocument = 
-                    await coreService.entityTypesDocuments();
+                //     let entityTypesDocument = 
+                //     await coreService.entityTypesDocuments();
 
-                    if( !entityTypesDocument.success ) {
-                        throw {
-                            message : CONSTANTS.apiResponses.ENTITY_TYPES_NOT_FOUND,
-                            status : HTTP_STATUS_CODE['bad_request'].status
-                        }
-                    }
+                //     if( !entityTypesDocument.success ) {
+                //         throw {
+                //             message : CONSTANTS.apiResponses.ENTITY_TYPES_NOT_FOUND,
+                //             status : HTTP_STATUS_CODE['bad_request'].status
+                //         }
+                //     }
 
-                    entityTypesData = entityTypesDocument.data.reduce((ac,entityType)=> ({
-                        ...ac,
-                        [entityType.name] : {
-                            _id : ObjectId(entityType._id),
-                            name : entityType.name
-                        }
-                    }),{});
+                //     entityTypesData = entityTypesDocument.data.reduce((ac,entityType)=> ({
+                //         ...ac,
+                //         [entityType.name] : {
+                //             _id : ObjectId(entityType._id),
+                //             name : entityType.name
+                //         }
+                //     }),{});
 
-                }
+                // }
 
                 return resolve({
                     success : true,
                     data : {
                         categories : categoriesData,
                         roles : recommendedFor,
-                        entityTypes : entityTypesData
+                        // <- Entitytype validation removed {release-5.0.0} - entity generalisation
+                        // entityTypes : entityTypesData
                     }
                 });
 
@@ -214,11 +218,10 @@ module.exports = class ProjectTemplatesHelper {
                 }
 
                 parsedData.recommendedFor = recommendedFor;
-
-                if( parsedData.entityType && parsedData.entityType !== "" ) {
-                    parsedData.entityType = csvInformation.entityTypes[parsedData.entityType].name;
-                    parsedData.entityTypeId = csvInformation.entityTypes[parsedData.entityType]._id;
-                }
+                // <- Entitytype validation removed {release-5.0.0} - entity generalisation
+                // if( parsedData.entityType && parsedData.entityType !== "" ) {
+                //     parsedData.entityType = csvInformation.entityTypes[parsedData.entityType].name;
+                // }
 
                 let learningResources = 
                 await learningResourcesHelper.extractLearningResourcesFromCsv(parsedData);
@@ -436,11 +439,11 @@ module.exports = class ProjectTemplatesHelper {
                             status : CONSTANTS.common.PUBLISHED,
                             _id : currentData._SYSTEM_ID,
                             status : CONSTANTS.common.PUBLISHED
-                        },["_id","categories"]);
+                        },["_id","categories", "isReusable"]);
 
                         if ( !(template.length > 0 && template[0]._id) ) {
                             currentData["UPDATE_STATUS"] = 
-                            constants.apiResponses.PROJECT_TEMPLATE_NOT_FOUND;
+                            CONSTANTS.apiResponses.PROJECT_TEMPLATE_NOT_FOUND;
                         } else {
                                 
                             let templateData = await this.templateData(
@@ -448,6 +451,10 @@ module.exports = class ProjectTemplatesHelper {
                                 csvInformation.data,
                                 userId
                             );
+
+                            if(template[0].isReusable === false) {
+                                templateData.isReusable = false;
+                            }
 
                             templateData.updatedBy = userId;
 
@@ -462,7 +469,7 @@ module.exports = class ProjectTemplatesHelper {
 
                             if( !projectTemplateUpdated || !projectTemplateUpdated._id ) {
                                 currentData["UPDATE_STATUS"] = 
-                                constants.apiResponses.PROJECT_TEMPLATE_NOT_UPDATED;
+                                CONSTANTS.apiResponses.PROJECT_TEMPLATE_NOT_UPDATED;
                             }
 
                             // Add projects count to categories
@@ -805,80 +812,92 @@ module.exports = class ProjectTemplatesHelper {
         return new Promise(async (resolve, reject) => {
             try {
 
-                let newProjectTemplateTask, duplicateTemplateTask,newProjectTemplateChildTask,duplicateChildTemplateTask;
                 let newTaskId = [];
 
-                await Promise.all(taskIds.map(async taskId => {
-
+                for ( let pointerToTask = 0; pointerToTask < taskIds.length; pointerToTask++ ) {
+                    
+                    let taskId = taskIds[pointerToTask];
                     let taskData = await projectTemplateTaskQueries.taskDocuments(
                         {
-                            _id : taskId
+                            _id : taskId,
+                            parentId : { $exists : false }
                         });
 
-                    if(taskData && taskData.length > 0){
+                    if( taskData && taskData.length > 0 ) {
                         taskData = taskData[0];
                     }
 
-                        if(taskData){
-                            //duplicate task
-                            newProjectTemplateTask = {...taskData};
-                            newProjectTemplateTask.projectTemplateId = duplicateTemplateId;
-                            newProjectTemplateTask.projectTemplateExternalId = duplicateTemplateExternalId;
-                            newProjectTemplateTask.externalId = taskData.externalId +"-"+ UTILS.epochTime();
-                            duplicateTemplateTask = 
-                                await projectTemplateTaskQueries.createTemplateTask(
-                                  _.omit(newProjectTemplateTask, ["_id"])
-                                );
-                            newTaskId.push(duplicateTemplateTask._id);
-                            //duplicate child task
-                            if(duplicateTemplateTask.children && duplicateTemplateTask.children.length > 0){
-                                let childTaskIdArray = [];
-                                let childTaskIds = duplicateTemplateTask.children;
-                          
-                                if(childTaskIds && childTaskIds.length > 0){
-                                    await Promise.all(childTaskIds.map(async childtaskId => {
-                                        let childTaskData = await projectTemplateTaskQueries.taskDocuments(
-                                            {
-                                                _id : childtaskId
-                                            });
-                                        
-                                        if(childTaskData && childTaskData.length > 0){
-                                            childTaskData = childTaskData[0];
-                                        }
-                                        
-                                        if(childTaskData){
-                                            newProjectTemplateChildTask = {...childTaskData};
-                                            newProjectTemplateChildTask.projectTemplateId = duplicateTemplateId;
-                                            newProjectTemplateChildTask.projectTemplateExternalId = duplicateTemplateExternalId;
-                                            newProjectTemplateChildTask.parentId = duplicateTemplateTask._id;
-                                            newProjectTemplateChildTask.externalId = childTaskData.externalId +"-"+ UTILS.epochTime();
-                                            duplicateChildTemplateTask = 
-                                                await projectTemplateTaskQueries.createTemplateTask(
-                                                  _.omit(newProjectTemplateChildTask, ["_id"])
-                                                );
+                    if ( taskData && Object.keys(taskData).length > 0 ) {
 
-                                            childTaskIdArray.push(duplicateChildTemplateTask._id);
-                                        }
-                                    }))
+                        //duplicate parent task
+                        let newProjectTemplateTask = {...taskData};
+                        newProjectTemplateTask.projectTemplateId = duplicateTemplateId;
+                        newProjectTemplateTask.projectTemplateExternalId = duplicateTemplateExternalId;
+                        newProjectTemplateTask.externalId = taskData.externalId +"-"+ UTILS.epochTime();
 
-                                    if(childTaskIdArray && childTaskIdArray.length > 0){
-                                        let updateTaskData = projectTemplateTaskQueries.updateTaskDocument(
+                        let duplicateTemplateTask = 
+                            await database.models.projectTemplateTasks.create(
+                              _.omit(newProjectTemplateTask, ["_id"])
+                            );
+
+                        newTaskId.push(duplicateTemplateTask._id);
+
+                        //duplicate child task
+                        if ( duplicateTemplateTask.children && duplicateTemplateTask.children.length > 0 ) {
+
+                            let childTaskIdArray = [];
+                            let childTaskIds = duplicateTemplateTask.children;
+
+                            if ( childTaskIds && childTaskIds.length > 0 ) {
+
+                                for ( let pointerToChild = 0 ; pointerToChild < childTaskIds.length ; pointerToChild++ ) {
+
+                                    let childtaskId = childTaskIds[pointerToChild];
+                                    let childTaskData = await projectTemplateTaskQueries.taskDocuments(
                                         {
-                                            _id : duplicateTemplateTask._id
-                                        },
-                                        {
-                                            $set : {
-                                                    children : childTaskIdArray
-                                            }
-                                        })
+                                            _id : childtaskId
+                                        });
+
+                                    if ( childTaskData && childTaskData.length > 0 ) {
+                                        childTaskData = childTaskData[0];
                                     }
+
+                                    if ( childTaskData && Object.keys(childTaskData).length > 0 ) {
+
+                                        let newProjectTemplateChildTask = {...childTaskData};
+                                        newProjectTemplateChildTask.projectTemplateId = duplicateTemplateId;
+                                        newProjectTemplateChildTask.projectTemplateExternalId = duplicateTemplateExternalId;
+                                        newProjectTemplateChildTask.parentId = duplicateTemplateTask._id;
+                                        newProjectTemplateChildTask.externalId = childTaskData.externalId +"-"+ UTILS.epochTime();
+                                        
+                                        let duplicateChildTemplateTask = 
+                                            await database.models.projectTemplateTasks.create(
+                                              _.omit(newProjectTemplateChildTask, ["_id"])
+                                            );
+
+                                        childTaskIdArray.push(duplicateChildTemplateTask._id);
+                                        newTaskId.push(duplicateChildTemplateTask._id);
+                                    }
+                                }
+                                //update new subtask ids to parent task 
+                                if(childTaskIdArray && childTaskIdArray.length > 0){
+                                    let updateTaskData = await projectTemplateTaskQueries.updateTaskDocument(
+                                    {
+                                        _id : duplicateTemplateTask._id
+                                    },
+                                    {
+                                        $set : {
+                                                children : childTaskIdArray
+                                        }
+                                    })
                                 }
                             }
                         }
-                }))
+                    }
+                }
 
                 let updateDuplicateTemplate;
-
+                //adding duplicate tasj to duplicate template
                 if(newTaskId && newTaskId.length > 0){
 
                     updateDuplicateTemplate = await projectTemplateQueries.findOneAndUpdate(
@@ -896,7 +915,6 @@ module.exports = class ProjectTemplatesHelper {
                    updateDuplicateTemplate
                 );
                 
-
             } catch (error) {
                 return reject(error);
             }
@@ -953,74 +971,122 @@ module.exports = class ProjectTemplatesHelper {
       * @name details
       * @param {String} templateId - Project template id.
       * @param {String} userId - logged in user id.
+      * @params {String} link - solution link.
       * @returns {Array} Project templates data.
      */
 
-    static details( templateId,userId ) {
+    static details( templateId="", link="", userId="" ) {
         return new Promise(async (resolve, reject) => {
             try {
-
+                let solutionsResult = {};
                 let findQuery = {};
+                //get data when link is given
+                if( link ){
+                    
+                    let queryData = {};
+                    queryData["link"] =link;
 
-                let validateTemplateId = UTILS.isValidMongoId(templateId);
-
-                if( validateTemplateId ) {
-                  findQuery["_id"] = templateId;
-                } else {
-                  findQuery["externalId"] = templateId;
+                    let solutionDocument = await solutionsQueries.solutionsDocument(queryData,
+                        [
+                            "_id",
+                            "name",
+                            "programId",
+                            "programName",
+                            "projectTemplateId",
+                            "link"
+                        ]
+                    );
+                    
+                    if( !solutionDocument.length > 0 ) {
+                        throw {
+                            message : CONSTANTS.apiResponses.SOLUTION_NOT_FOUND,
+                            status : HTTP_STATUS_CODE['bad_request'].status
+                        }
+                    }
+                    let solutiondata = solutionDocument;
+                    templateId = solutiondata[0].projectTemplateId;
+                    if( !templateId ){
+                        return resolve({
+                            success : false,
+                            data : solutiondata,
+                            message : CONSTANTS.apiResponses.TEMPLATE_ID_NOT_FOUND_IN_SOLUTION
+                        });   
+                    }
+                    solutionsResult = solutiondata;
+                    templateId=templateId.toString();
                 }
+                
+                if( templateId ){
+                    let validateTemplateId = UTILS.isValidMongoId(templateId);
+                    if( validateTemplateId ) {
+                      findQuery["_id"] = templateId;
+                    } else {
+                      findQuery["externalId"] = templateId;
+                    }
+
+                }
+                //getting template data using templateId
 
                 let templateData = await projectTemplateQueries.templateDocument(findQuery,"all",
-                [
-                    "ratings",
-                    "noOfRatings",
-                    "averageRating",
-                    "parentTemplateId",
-                    "userId",
-                    "createdBy",
-                    "updatedBy",
-                    "createdAt",
-                    "updatedAt",
-                    "__v"
-                ]);
-
+                    [
+                        "ratings",
+                        "noOfRatings",
+                        "averageRating",
+                        "parentTemplateId",
+                        "userId",
+                        "createdBy",
+                        "updatedBy",
+                        "createdAt",
+                        "updatedAt",
+                        "__v"
+                    ]
+                );
+                
                 if ( !templateData.length > 0 ) {
                     throw {
                         status : HTTP_STATUS_CODE.bad_request.status,
-                        message : CONSTANTS.apiResponses.PROJECT_TEMPLATE_NOT_FOUND
-                    }
+                        message :CONSTANTS.apiResponses.PROJECT_TEMPLATE_NOT_FOUND
+                    }    
                 }
 
                 if (templateData[0].tasks && templateData[0].tasks.length > 0) {
                     templateData[0].tasks = 
                     await this.tasksAndSubTasks(templateData[0]._id);
                 }
-
                 let result = await _templateInformation(templateData[0])
-
                 if( !result.success ) {
                     return resolve(result);
                 }
-
-                if( !templateData[0].isReusable ) {
-                    
+    
+                if( !templateData[0].isReusable && userId !== "") {
+                        
                     templateData[0].projectId = "";
-
+    
                     let project = await projectQueries.projectDocument({
                         userId : userId,
                         projectTemplateId : templateData[0]._id
                     },["_id"]);
-
+    
                     if(project && project.length > 0){
                         templateData[0].projectId = project[0]._id;
                     }
                 }
-
+                if( !result.data.programInformation ){
+                    result.data.programInformation = {
+                        programId : solutionsResult.programId,
+                        programName : solutionsResult.programName
+                    }
+                }
+                result.data.solutionInformation = {
+                    _id : solutionsResult._id,
+                    name : solutionsResult.name,
+                    link : solutionsResult.link     
+                } 
                 return resolve({
                     success : false,
                     data : result.data,
                     message : CONSTANTS.apiResponses.PROJECT_TEMPLATE_DETAILS_FETCHED
-                });
+                });                        
                 
             } catch (error) {
                 return reject(error);
@@ -1044,35 +1110,35 @@ module.exports = class ProjectTemplatesHelper {
                 await projectTemplateQueries.templateDocument({
                     _id : templateId,
                     status : CONSTANTS.common.PUBLISHED
-                },["tasks"]);
+                },["tasks", "taskSequence"]);
 
                 let tasks = [];
 
-                if( templateDocument[0].tasks ) {
+                if ( templateDocument[0].taskSequence && templateDocument[0].taskSequence.length > 0 ) {
 
+                    let projectionKey = CONSTANTS.common.TASK_SEQUENCE;
                     let findQuery = {
-                        _id : {
-                            $in : templateDocument[0].tasks
-                        },
-                        parentId : { $exists : false }
-                    }
-
-                    tasks = await projectTemplateTaskQueries.taskDocuments(findQuery,"all", ["projectTemplateId","__v","projectTemplateExternalId"]);
-                    for( let task = 0 ; task < tasks.length ; task ++ ) {
-
-                        if( tasks[task].children && tasks[task].children.length > 0 ) {
-
-                            let subTaskQuery = {
-                                _id : {
-                                    $in : tasks[task].children
-                                }
-                            }
-
-                            let subTasks = await projectTemplateTaskQueries.taskDocuments(subTaskQuery, "all", ["projectTemplateId","__v","projectTemplateExternalId"]);
-                            
-                            tasks[task].children = subTasks;
+                        externalId : {
+                            $in : templateDocument[0].taskSequence
                         }
                     }
+
+                    tasks = await _taskAndSubTaskinSequence(findQuery, projectionKey);
+                } else {
+                    if ( templateDocument[0].tasks && templateDocument[0].tasks.length > 0 ){
+                        let projectionKey = CONSTANTS.common.CHILDREN;
+                        if( templateDocument[0].tasks ) {
+                            let findQuery = {
+                                _id : {
+                                    $in : templateDocument[0].tasks
+                                },
+                                parentId : { $exists : false }
+                            }
+
+                            tasks = await _taskAndSubTaskinSequence(findQuery, projectionKey);
+                        }
+                    }
+                    
                 }
 
                 return resolve(tasks);
@@ -1081,6 +1147,73 @@ module.exports = class ProjectTemplatesHelper {
                return reject(error);
            }
        });
+    }
+
+    /**
+      * Template update.
+      * @method
+      * @name update
+      * @param {String} templateId - Project template id.
+      * @param {Object} templateData - template updation data
+      * @param {String} userId - logged in user id.
+      * @returns {Array} Project templates data.
+     */
+
+    static update( templateId, templateData, userId ) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let findQuery = {};
+
+                let validateTemplateId = UTILS.isValidMongoId(templateId);
+
+                if( validateTemplateId ) {
+                  findQuery["_id"] = templateId;
+                } else {
+                  findQuery["externalId"] = templateId;
+                }
+
+                let templateDocument = await projectTemplateQueries.templateDocument(findQuery, ["_id"]);
+
+                if ( !templateDocument.length > 0 ) {
+                    throw {
+                        status : HTTP_STATUS_CODE.bad_request.status,
+                        message : CONSTANTS.apiResponses.PROJECT_TEMPLATE_NOT_FOUND
+                    }
+                }
+
+                let updateObject = {
+                    "$set" : {}
+                };
+
+                let templateUpdateData = templateData;
+
+                Object.keys(templateUpdateData).forEach(updationData=>{
+                    updateObject["$set"][updationData] = templateUpdateData[updationData];
+                });
+
+                  updateObject["$set"]["updatedBy"] = userId;
+
+                let templateUpdatedData = await projectTemplateQueries.findOneAndUpdate({
+                    _id :  templateDocument[0]._id
+                }, updateObject, { new : true });
+
+                if( !templateUpdatedData._id ) {
+                    throw {
+                      message : CONSTANTS.apiResponses.PROJECT_TEMPLATE_NOT_UPDATED
+                    }
+                }
+
+                return resolve({
+                    success : true,
+                    data : templateUpdatedData,
+                    message : CONSTANTS.apiResponses.PROJECT_TEMPLATE_UPDATED
+                });
+                
+            } catch (error) {
+                return reject(error);
+            }
+        })
     }
 
 };
@@ -1147,7 +1280,6 @@ function _templateInformation(project) {
                     project[projectMetaKey] = project.metaInformation[projectMetaKey];
                 });
             }
-
             delete project.metaInformation;
             delete project.__v;
 
@@ -1170,3 +1302,59 @@ function _templateInformation(project) {
         }
     })
 }
+
+/**
+ * Task and SubTask In Order.
+ * @method
+ * @name _taskAndSubTaskinSequence 
+ * @param {Object} query - template Query.
+ * @param {String} projectionValue - children or taskSequence.
+ * @returns {Object} Task and SubTask information.
+*/
+
+function _taskAndSubTaskinSequence(query, projectionValue) {
+
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let tasks = [];
+            tasks = await projectTemplateTaskQueries.taskDocuments(query,"all", ["projectTemplateId","__v","projectTemplateExternalId"]);
+            
+            for( let task = 0 ; task < tasks.length ; task++ ) {
+                if ( tasks[task][projectionValue] && tasks[task][projectionValue].length > 0 ) {
+                    let subTaskQuery;
+                    if ( projectionValue  == CONSTANTS.common.CHILDREN ) {
+                        subTaskQuery = {
+                            "_id" : {
+                                $in : tasks[task][projectionValue]
+                            }
+                        }
+
+                    } else {
+                        subTaskQuery = {
+                            "externalId" : {
+                                $in : tasks[task][projectionValue]
+                            }
+                        } 
+                    }
+
+                    let subTasks = await projectTemplateTaskQueries.taskDocuments(subTaskQuery, "all", ["projectTemplateId","__v","projectTemplateExternalId"]);
+                    tasks[task].children = subTasks;
+                }
+            }
+
+            return resolve(tasks);
+
+        } catch (error) {
+            return resolve({
+                message: error.message,
+                success: false,
+                status:
+                    error.status ?
+                        error.status : HTTP_STATUS_CODE['internal_server_error'].status
+            })
+        }
+    })
+}
+
+

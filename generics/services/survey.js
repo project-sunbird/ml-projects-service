@@ -319,7 +319,7 @@ const observationDetails = function (token,observationId) {
             let url =  
             ASSESSMENT_URL + 
             CONSTANTS.endpoints.OBSERVATION_DETAILS + "/" + observationId;
-
+            
             const options = {
                 headers : {
                     "content-type": "application/json",
@@ -340,7 +340,7 @@ const observationDetails = function (token,observationId) {
                     result.success = false;
                 } else {
 
-                    let response = data.body;
+                    let response = JSON.parse(data.body);
                     if( response.status === HTTP_STATUS_CODE['ok'].status ) {
                         result["data"] = response.result;
                     } else {
@@ -348,6 +348,7 @@ const observationDetails = function (token,observationId) {
                     }
                     
                 }
+
                 return resolve(result);
             }
 
@@ -374,7 +375,7 @@ const listSolutions = function (solutionIds) {
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
+                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN
                 },
                 json : {
                     solutionIds : solutionIds
@@ -393,7 +394,6 @@ const listSolutions = function (solutionIds) {
                     result.success = false;
                 } else {
                     let response = data.body;
-
                     if( response.status === HTTP_STATUS_CODE['ok'].status ) {
                         result["data"] = response.result;
                     } else {
@@ -479,7 +479,7 @@ const updateSolution = function ( token,updateData,solutionExternalId ) {
   * @returns {JSON} - Create observation.
 */
 
-const createObservation = function (token,solutionId,data) {
+const createObservation = function (token,solutionId,data, userRoleAndProfileInformation = {}) {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -487,7 +487,7 @@ const createObservation = function (token,solutionId,data) {
             ASSESSMENT_URL + 
             CONSTANTS.endpoints.CREATE_OBSERVATIONS + "?solutionId=" + solutionId;
 
-            const options = {
+            let options = {
                 headers : {
                     "content-type": "application/json",
                     "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
@@ -497,6 +497,10 @@ const createObservation = function (token,solutionId,data) {
                    data : data
                 }
             };
+
+            if ( userRoleAndProfileInformation && Object.keys(userRoleAndProfileInformation).length > 0){
+                options.json.userRoleAndProfileInformation = userRoleAndProfileInformation;
+            }
             
             request.post(createdObservationUrl,options,assessmentCallback);
 
@@ -518,6 +522,7 @@ const createObservation = function (token,solutionId,data) {
                     }
                     
                 }
+
                 return resolve(result);
             }
 

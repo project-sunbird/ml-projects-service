@@ -32,6 +32,7 @@ module.exports = class ProjectTemplates extends Abstract {
     constructor() {
         super("project-templates");
     }
+   
 
     /**
     * @api {post} /improvement-project/api/v1/project/templates/bulkCreate 
@@ -666,12 +667,20 @@ module.exports = class ProjectTemplates extends Abstract {
 
        async details(req) {
         return new Promise(async (resolve, reject) => {
+            
             try {
-
+                if( !req.params._id && !req.query.link ) {
+                    throw{
+                        status:HTTP_STATUS_CODE.bad_request.status,
+                        message:CONSTANTS.apiResponses.TEMPLATE_ID_OR_LINK_REQUIRED
+                    }
+                }
+                
                 let projectTemplatesDetails = 
                 await projectTemplatesHelper.details(
-                    req.params._id,
-                    req.userDetails.userInformation.userId
+                    req.params._id ? req.params._id : "",
+                    req.query.link ? req.query.link : "",
+                    req.userDetails && req.userDetails.userInformation && req.userDetails.userInformation.userId ? req.userDetails.userInformation.userId : ""
                 );
 
                 projectTemplatesDetails.result = projectTemplatesDetails.data;
@@ -682,6 +691,54 @@ module.exports = class ProjectTemplates extends Abstract {
                 return reject({
                     status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
                     message: error.message || HTTP_STATUS_CODE.internal_server_error.message
+                });
+            }
+        })
+    }
+
+    /**
+    * @api {post} /improvement-project/api/v1/project/templates/update/:templateId 
+    * Update projects template.
+    * @apiVersion 1.0.0
+    * @apiGroup Project Templates
+    * @apiSampleRequest /improvement-project/api/v1/project/templates/update/6006b5cca1a95727dbcdf648
+    * @apiHeader {String} internal-access-token internal access token 
+    * @apiHeader {String} X-authenticated-user-token Authenticity token  
+    * @apiUse successBody
+    * @apiUse errorBody
+    * @apiParamExample {json} Response:
+    * {
+    *  "status": 200,
+        "message": "template updated successfully"
+    }
+    */
+
+      /**
+      * Update project templates
+      * @method
+      * @name update
+      * @returns {JSON} returns uploaded project template.
+     */
+
+    async update(req) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let projectTemplate = await projectTemplatesHelper.update(
+                  req.params._id, 
+                  req.body, 
+                  req.userDetails.id
+                );
+
+                projectTemplate.result = projectTemplate.data;
+
+                return resolve(projectTemplate);
+
+            } catch (error) {
+                return reject({
+                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
+                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
+                    errorObject: error
                 });
             }
         })

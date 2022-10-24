@@ -211,7 +211,7 @@ module.exports = class LibraryCategoriesHelper {
                         isDeleted : false
                     });
 
-                    if( tasks &&  tasks.length > 0 ) {
+                    if( tasks && tasks.length > 0 ) {
 
                         let taskData = {};
 

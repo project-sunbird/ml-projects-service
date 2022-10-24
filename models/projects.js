@@ -8,8 +8,14 @@
 module.exports = {
     name: "projects",
     schema: {
-        title : String,
-        description : String,
+        title : {
+            type : String,
+            index: true
+        },
+        description : {
+            type : String,
+            index: true
+        },
         taskReport : {
             type : Object,
             default : {}
@@ -30,7 +36,7 @@ module.exports = {
         },
         status : {
             type : String,
-            default : "notStarted",
+            default : "started",
             index: true
         },
         lastDownloadedAt : Date,
@@ -46,7 +52,8 @@ module.exports = {
         },
         createdBy : {
             type : String,
-            default : "SYSTEM"
+            default : "SYSTEM",
+            index: true
         },
         tasks : {
             type : Array,
@@ -83,7 +90,7 @@ module.exports = {
             default : []
         },
         entityId : {
-            type : "ObjectId",
+            type : String,
             index : true
         },
         programId : {
@@ -107,7 +114,7 @@ module.exports = {
             index : true
         },
         appInformation : Object,
-        userRoleInformtion : Object,
+        userRoleInformation : Object,
         hasAcceptedTAndC : {
             type : Boolean,
             default : false
@@ -120,6 +127,31 @@ module.exports = {
         link : {
             type : String,
             index : true
+        },
+        taskSequence : {
+            type : Array,
+            default : []
+        },
+        completedDate: Date,
+        recommendedFor : {
+            type : Array,
+            default : [] 
+        },
+        attachments : {
+            type : Array,
+            default : [] 
+        },
+        remarks : String,
+        userProfile : Object
+    },
+    compoundIndex: [
+        {
+            "name" :{ userId: 1, solutionId: 1 },
+            "indexType" : { unique: true, partialFilterExpression: { solutionId: { $exists: true }}}
         }
-    }
+    ]
+        
+    
+
 };
+
