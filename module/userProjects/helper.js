@@ -1101,6 +1101,7 @@ module.exports = class UserProjectsHelper {
                         }
                         
                         solutionDetails = solutionDetails.data[0];
+                        
                     }
 
                     let projectCreation = 
@@ -1266,6 +1267,18 @@ module.exports = class UserProjectsHelper {
                     }
 
                     projectCreation.data.userRoleInformation = userRoleInformation;
+                    
+                    //compare & update userProfile with userRoleInformation
+                    if ( projectCreation.data.userProfile && userRoleInformation ) {
+                        let updatedUserProfile = await _updateUserProfileBasedOnUserRoleInfo(
+                            projectCreation.data.userProfile,
+                            userRoleInformation
+                        );
+
+                        if (updatedUserProfile && updatedUserProfile.success == true) {
+                            projectCreation.data.userProfile = updatedUserProfile.data;
+                        }
+                    }
     
                     let project = await projectQueries.createProject(projectCreation.data);
                     
@@ -3049,6 +3062,140 @@ function _projectData(data) {
         }
     })
 }
+
+/**
+  * Validate & Update UserProfile in Projects.
+  * @method
+  * @name _updateUserProfileBasedOnUserRoleInfo 
+  * @param {Object} userProfile - userProfile data.
+  * @param {Object} userRoleInformation - userRoleInformation data.
+  * @returns {Object} updated UserProfile information.
+*/
+
+function _updateUserProfileBasedOnUserRoleInfo(userProfile, userRoleInformation) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            let updatedUserProfile = userProfile;
+            let userRoleFromUserProfile = {};
+            let userType,userProfileSubRole;
+            let roles = [];
+            let profileUserTypes = [];
+            let userLocations = [];
+
+            if ( userProfile['profileUserTypes'] && 
+                userProfile['userLocations'] &&
+                Object.keys(userRoleInformation).length > 0 ) 
+            {
+
+                //fetch user type from userProfile
+                for ( let userData of userProfile['profileUserTypes'] ) {
+                    userType = userData.type;
+                }
+
+                //fetch user suRole from userProfile
+                for (const userRole of userProfile['profileUserTypes']) {
+                    userRole.subType ? roles.push(userRole.subType.toUpperCase()) : roles.push(userRole.type.toUpperCase());
+                }
+
+                userProfileSubRole = roles.toString();
+                if ( userProfileSubRole ) {
+                    userRoleFromUserProfile.role = userProfileSubRole;
+                }
+
+                //fetch location from userProfile
+                for (const location of userProfile["userLocations"]) {
+                    userRoleFromUserProfile[location.type] = location.id;
+                    if (location.type == "school"){
+                        userRoleFromUserProfile["school"] = location.code;
+                    }
+                }
+
+                //compare userProfile & userRoleInformation
+                let updateUserProfile = _.isEqual(userRoleInformation, userRoleFromUserProfile);
+
+                //update profile if userRoleInformation & userProfile are not matching
+                if ( !updateUserProfile ) {
+
+                    //update profileUserTypes in userProfile
+                    let userRoles = userRoleInformation.role.split(",");
+                    for ( const subRole of userRoles ) {
+                        let roleObj = {};
+                        roleObj.type = userType;
+                        roleObj.subType = subRole;
+                        profileUserTypes.push(roleObj);
+                    }
+
+                    if ( profileUserTypes.length > 0 ){
+                        updatedUserProfile["profileUserTypes"] = profileUserTypes;
+                    }
+
+                    //update userLocations in userProfile
+                    let locationIds = [];
+                    let locationCodes = [];
+
+                    Object.keys(_.omit(userRoleInformation,["role"])).forEach( requestedDataKey => {
+                        if ( UTILS.checkValidUUID(userRoleInformation[requestedDataKey])) {
+                            locationIds.push(userRoleInformation[requestedDataKey]);
+                        } else {
+                            locationCodes.push(userRoleInformation[requestedDataKey]);
+                        }
+                    })
+
+                    //query for fetch location using id
+                    if ( locationIds.length > 0 ) {
+                        let filterQuery = {
+                            "id" : locationIds
+                        }
+
+                        let entityData = await userProfileService.locationSearch(filterQuery);
+                        if ( entityData.success ) {
+                            userLocations = entityData.data;
+                        }
+                    }
+
+                    // query for fetch location using code
+                    if ( locationCodes.length > 0 ) {
+                        let filterQuery = {
+                            "code" : locationCodes
+                        }
+
+                        let entityData = await userProfileService.locationSearch(filterQuery);
+                        if ( entityData.success ) {
+                            let schoolData = [];
+                            entityData.data.map(entityDoc => {
+                                let entity = _.omit(entityDoc, ['identifier']);
+                                schoolData.push(entity);
+                            })
+                            userLocations =  userLocations.concat(schoolData);
+                        }
+                    }
+
+                    if ( userLocations.length > 0 ) {
+                        updatedUserProfile["userLocations"] = userLocations;
+                    }
+                }
+            }
+
+            return resolve({
+                success: true,
+                data: updatedUserProfile
+            });
+
+        } catch (error) {
+            return resolve({
+                message: error.message,
+                status:
+                    error.status ?
+                        error.status : HTTP_STATUS_CODE['internal_server_error'].status,
+                success: false,
+                data: {}
+            });
+        }
+    })
+}
+
+
 
 
 
