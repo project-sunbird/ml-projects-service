@@ -52,5 +52,6 @@ module.exports = {
     PROJECT_CERTIFICATE_API_CALLBACK : "/v1/userProjects/certificateCallback",
     USER_READ_PRIVATE : "/private/user/v1/read", // !Caution: End point for reading user details without token. Do not use for public work flow
     GET_CERTIFICATE_KID : "/api/v1/PublicKey/search",
+    PROGRAM_JOIN: "/v1/programs/join",
     IS_TARGETED_BASED_ON_USER_PROFILE : "/v1/solutions/isTargetedBasedOnUserProfile",
 };

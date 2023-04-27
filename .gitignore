@@ -69,3 +69,4 @@ config/credentials/*
 *.DS_Store
 
 package-lock.json
+keycloak-public-keys/
