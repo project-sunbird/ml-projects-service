@@ -45,6 +45,13 @@ module.exports = {
         default : false,
         type : Boolean,
         index : true
-      }
+      },
+      requestForPIIConsent: Boolean,
+      metaInformation: Object,
+      rootOrganisations : {
+        type : Array,
+        require : true
+      },
+      createdFor : Array
     }
   };

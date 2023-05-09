@@ -21,7 +21,6 @@ const projectTemplateTaskQueries = require(DB_QUERY_BASE_PATH + "/projectTemplat
 const kafkaProducersHelper = require(GENERICS_FILES_PATH + "/kafka/producers");
 const removeFieldsFromRequest = ["submissionDetails"];
 const programsQueries = require(DB_QUERY_BASE_PATH + "/programs");
-const programUsers = require(DB_QUERY_BASE_PATH + "/programUsers");
 const userProfileService = require(GENERICS_FILES_PATH + "/services/users");
 const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 const certificateTemplateQueries = require(DB_QUERY_BASE_PATH + "/certificateTemplates");
@@ -1117,36 +1116,45 @@ module.exports = class UserProjectsHelper {
                         solutionDetails = solutionDetails.data[0];
                         
                     }
+                    // check for requestForPIIConsent data
+                    let queryData = {};
+                    queryData["_id"] = solutionDetails.programId;
+                    let programDetails = await programsQueries.programsDocument(queryData,["requestForPIIConsent"]);
                     
-                    // program join API call it will increment the noOfResourcesStarted counter and will make user join program
-                    // before creating any project this api has to called 
-                    let programUsers = await programUsersQueries.programUsersDocuments(
-                        {
-                            userId : userId,
-                            programId : solutionDetails.programId
-                        },
-                        [
-                            "_id",
-                            "resourcesStarted"
-                        ]
-                    );
-    
-                    if (!programUsers.length > 0 || ( programUsers.length > 0 && programUsers[0].resourcesStarted == false)) {
-                        let programJoinBody = {};
-                        programJoinBody.userRoleInformation = bodyData;
-                        programJoinBody.isResource = true;
-                        let joinProgramData = await coreService.joinProgram (
-                            solutionDetails.programId,
-                            programJoinBody,
-                            userToken
+                    // if requestForPIIConsent not there do not call program join
+                    if ( programDetails.length > 0 && programDetails[0].hasOwnProperty('requestForPIIConsent')) {
+                        
+                        // program join API call it will increment the noOfResourcesStarted counter and will make user join program
+                        // before creating any project this api has to called 
+                        let programUsers = await programUsersQueries.programUsersDocument(
+                            {
+                                userId : userId,
+                                programId : solutionDetails.programId
+                            },
+                            [
+                                "_id",
+                                "resourcesStarted"
+                            ]
                         );
-                        if ( !joinProgramData.success ) {
-                            return resolve({ 
-                                status: HTTP_STATUS_CODE.bad_request.status, 
-                                message: CONSTANTS.apiResponses.PROGRAM_JOIN_FAILED
-                            });
+        
+                        if (!programUsers.length > 0 || ( programUsers.length > 0 && programUsers[0].resourcesStarted == false)) {
+                            let programJoinBody = {};
+                            programJoinBody.userRoleInformation = bodyData;
+                            programJoinBody.isResource = true;
+                            let joinProgramData = await coreService.joinProgram (
+                                solutionDetails.programId,
+                                programJoinBody,
+                                userToken
+                            );
+                            if ( !joinProgramData.success ) {
+                                return resolve({ 
+                                    status: HTTP_STATUS_CODE.bad_request.status, 
+                                    message: CONSTANTS.apiResponses.PROGRAM_JOIN_FAILED
+                                });
+                            }
                         }
                     }
+                    
                     let projectCreation = 
                     await this.userAssignedProjectCreation(
                         solutionDetails.projectTemplateId,
