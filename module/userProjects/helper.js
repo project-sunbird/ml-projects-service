@@ -1045,7 +1045,7 @@ module.exports = class UserProjectsHelper {
    static detailsV2( projectId,solutionId,userId,userToken,bodyData,appName = "",appVersion = "",templateId = "" ) {
     return new Promise(async (resolve, reject) => {
         try {
-
+            
             let solutionExternalId = "";
             
             if( templateId !== "" ) {
@@ -1067,11 +1067,12 @@ module.exports = class UserProjectsHelper {
                 solutionId = templateDocuments[0].solutionId;
                 solutionExternalId = templateDocuments[0].solutionExternalId;
             }
-
+            
             let userRoleInformation = _.omit(bodyData,["referenceFrom","submissions","hasAcceptedTAndC"]);
+            
             if (projectId === "") {
                 // This will check wether the user user is targeted to solution or not based on his userRoleInformation
-                const targetedSolutionId = await coreService.checkIfSolutionIsTargetedForUserProfile(userToken,bodyData,solutionId)
+                const targetedSolutionId = await coreService.checkIfSolutionIsTargetedForUserProfile(userToken,userRoleInformation,solutionId)
                 //based on above api will check for projects wether its is private project or public project
                 const projectDetails = await projectQueries.projectDocument({
                     solutionId: solutionId,
@@ -1139,7 +1140,7 @@ module.exports = class UserProjectsHelper {
         
                         if (!programUsers.length > 0 || ( programUsers.length > 0 && programUsers[0].resourcesStarted == false)) {
                             let programJoinBody = {};
-                            programJoinBody.userRoleInformation = bodyData;
+                            programJoinBody.userRoleInformation = userRoleInformation;
                             programJoinBody.isResource = true;
                             programJoinBody.consentShared = true;
                             let joinProgramData = await coreService.joinProgram (
