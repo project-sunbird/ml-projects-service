@@ -1141,6 +1141,7 @@ module.exports = class UserProjectsHelper {
                             let programJoinBody = {};
                             programJoinBody.userRoleInformation = bodyData;
                             programJoinBody.isResource = true;
+                            programJoinBody.consentShared = true;
                             let joinProgramData = await coreService.joinProgram (
                                 solutionDetails.programId,
                                 programJoinBody,
