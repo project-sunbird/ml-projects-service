@@ -727,7 +727,8 @@ const listEntitiesByLocationIds = function ( token,locationIds ) {
                     
                     let response = data.body;
                     
-                    if( response.status === HTTP_STATUS_CODE['ok'].status ) {
+                    
+                    if( response.status === HTTP_STATUS_CODE['ok'].status && response.result ) {
                         result["data"] = response.result;
                     } else {
                         result.success = false;

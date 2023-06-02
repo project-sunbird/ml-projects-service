@@ -1259,7 +1259,10 @@ module.exports = class UserProjectsHelper {
                             );
 
                             if( !entityInformation.success ) {
-                                return resolve(entityInformation);
+                                throw {
+                                    message : CONSTANTS.apiResponses.ENTITY_NOT_FOUND,
+                                    status : HTTP_STATUS_CODE['bad_request'].status
+                                }
                             }
 
                             let entityDetails = await _entitiesMetaInformation(
