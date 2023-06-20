@@ -99,6 +99,10 @@ module.exports = {
       reportInformation : Object,
       certificateTemplateId : "ObjectId",
       rootOrganisations : Array,
-      createdFor : Array
+      createdFor : Array,
+      projectTemplateId : {
+        type : "ObjectId",
+        index: true
+      }
     }
   };

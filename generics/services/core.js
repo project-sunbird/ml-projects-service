@@ -682,7 +682,6 @@ const solutionBasedOnRoleAndLocation = function ( token,bodyData,typeAndSubType,
 const solutionDetailsBasedOnRoleAndLocation = function ( token,bodyData,solutionId ) {
     return new Promise(async (resolve, reject) => {
         try {
-            
             const url = 
             ML_CORE_URL + CONSTANTS.endpoints.SOLUTION_DETAILS_BASED_ON_ROLE_LOCATION + "/" + solutionId;
 
