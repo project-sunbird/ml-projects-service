@@ -1,0 +1,72 @@
+{
+    "_id" : "637cb340261b7c0008253fa6",
+    "status" : "active",
+    "deleted" : false,
+    "criteria" : {
+        "validationText" : "Complete validation message",
+        "expression" : "C1&&C2&&C3",
+        "conditions" : {
+            "C1" : {
+                "validationText" : "Project Should be submitted within program Enddate",
+                "expression" : "C1&&C2",
+                "conditions" : {
+                    "C1" : {
+                        "scope" : "project",
+                        "key" : "status",
+                        "operator" : "==",
+                        "value" : "submitted"
+                    },
+                    "C2" : {
+                        "scope" : "project",
+                        "key" : "completedDate",
+                        "operator" : "<",
+                        "value" : "15-08-2022"
+                    }
+                }
+            },
+            "C2" : {
+                "validationText" : "Evidence project level validation",
+                "expression" : "C1",
+                "conditions" : {
+                    "C1" : {
+                        "scope" : "project",
+                        "key" : "attachments",
+                        "function" : "count",
+                        "filter" : {
+                            "key" : "type",
+                            "value" : "all"
+                        },
+                        "operator" : ">",
+                        "value" : 1
+                    }
+                }
+            },
+            "C3" : {
+                "validationText" : "Evidence task level validation",
+                "expression" : "C1",
+                "conditions" : {
+                    "C1" : {
+                        "scope" : "task",
+                        "key" : "attachments",
+                        "function" : "count",
+                        "filter" : {
+                            "key" : "type",
+                            "value" : "all"
+                        },
+                        "operator" : ">",
+                        "value" : 1
+                    }
+                }
+            }
+        }
+    },
+    "issuer" : {
+        "name" : "Gujarat"
+    },
+    "solutionId" : "5ff9dc1b9259097d48017bbe",
+    "programId" : "605083ba09b7bd61555580fb",
+    "updatedAt" : "2022-11-22T11:37:37.495+0000",
+    "createdAt" : "2022-11-22T11:32:16.639+0000",
+    "__v" : 0,
+    "templateUrl" : "certificateTemplates/637cb340261b7c0008253fa6/ba9aa220-ff1b-4717-b6ea-ace55f04fc16_22-10-2022-1669117057492.svg"
+}
