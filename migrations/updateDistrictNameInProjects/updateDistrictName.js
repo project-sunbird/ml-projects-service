@@ -61,8 +61,16 @@ const endPoint = "/v1/location/search";
     let updateProjectDocument = [];
 
     for (let count = 0; count < projectDocuments.length; count++) {
+      let userLocations = projectDocuments[count].userProfile.userLocations;
+      let userLocationsWithInCorrectData = userLocations.filter(function (
+          locations
+        ) {
+          return (
+            locations.type == filedMissmatch
+          );
+        });
       let filterData = {
-        id: projectDocuments[count].userRoleInformation[filedMissmatch],
+        id: userLocationsWithInCorrectData[0].id,
       };
       let correctDistrictData = await locationSearch(filterData);
       let userLocationsWithCorrectData = [];
@@ -72,13 +80,12 @@ const endPoint = "/v1/location/search";
           locations
         ) {
           return (
-            locations.id !==
-            projectDocuments[count].userRoleInformation[filedMissmatch]
+            locations.type !== filedMissmatch
           );
         });
         userLocationsWithCorrectData.push(...correctDistrictData.data);
       }
-      if (userLocationsWithCorrectData > 0) {
+      if (userLocationsWithCorrectData.length > 0) {
         let updateObject = {
           updateOne: {
             filter: {
@@ -96,7 +103,7 @@ const endPoint = "/v1/location/search";
       }
     }
     // will create BulkWrite Query to otimize excution
-    if (updateProjectDocument > 0) {
+    if (updateProjectDocument.length > 0) {
       await db.collection("projects").bulkWrite(updateProjectDocument);
     }
     fs.writeFile(
