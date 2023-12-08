@@ -127,4 +127,32 @@ module.exports = class Projects {
         });
     }
 
+    /**
+     * Update projects
+     * @method
+     * @name updateMany
+     * @param {Object} query 
+     * @param {Object} update 
+     * @param {Object} options 
+     * @returns {JSON} - update projects.
+    */
+
+       static updateMany(query, update, options = {}) {
+        return new Promise(async (resolve, reject) => {
+            try {
+            
+                let updatedProjectCount = await database.models.projects.updateMany(
+                    query, 
+                    update,
+                    options
+                );
+                if( updatedProjectCount) {
+                    return resolve(updatedProjectCount);
+                }
+            } catch (error) {
+                return reject(error);
+            }
+        })
+    }
+
 };

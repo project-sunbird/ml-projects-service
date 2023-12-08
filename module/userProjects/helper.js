@@ -28,13 +28,130 @@ const certificateService = require(GENERICS_FILES_PATH + "/services/certificate"
 const certificateValidationsHelper = require(MODULES_BASE_PATH + "/certificateValidations/helper");
 const _ = require("lodash");  
 const programUsersQueries = require(DB_QUERY_BASE_PATH + "/programUsers");
-
+const telemetryEventOnOff = process.env.TELEMETRY_ON_OFF
 /**
     * UserProjectsHelper
     * @class
 */
 
 module.exports = class UserProjectsHelper {
+
+
+     /**
+   * deleteUserPIIData function to delete users Data.
+   * @method
+   * @name deleteUserPIIData
+   * @param {userDeleteEvent} - userDeleteEvent message object 
+   * {
+      "eid": "BE_JOB_REQUEST",
+      "ets": 1619527882745,
+      "mid": "LP.1619527882745.32dc378a-430f-49f6-83b5-bd73b767ad36",
+      "actor": {
+        "id": "delete-user",
+        "type": "System"
+      },
+      "context": {
+        "channel": "01309282781705830427",
+        "pdata": {
+          "id": "org.sunbird.platform",
+          "ver": "1.0"
+        },
+        "env": "dev"
+      },
+      "object": {
+        "id": "<deleted-userId>",
+        "type": "User"
+      },
+      "edata": {
+        "organisationId": "0126796199493140480",
+        "userId": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+        "suggested_users": [
+          {
+            "role": "ORG_ADMIN",
+            "users": [
+              "<orgAdminUserId>"
+            ]
+          },
+          {
+            "role": "CONTENT_CREATOR",
+            "users": [
+              "<contentCreatorUserId>"
+            ]
+          },
+          {
+            "role": "COURSE_MENTOR",
+            "users": [
+              "<courseMentorUserId>"
+            ]
+          }
+        ],
+        "action": "delete-user",
+        "iteration": 1
+      }
+    }
+   * @returns {Promise} success Data.
+   */
+    static deleteUserPIIData(userDeleteEvent) {
+        return new Promise(async (resolve, reject) => {
+            try{
+                let userId = userDeleteEvent.edata.userId;
+                let filter = {
+                    userId: userId,
+                }
+                let updateProfile =  {
+                $set: {
+                    "userProfile.firstName": CONSTANTS.common.DELETED_USER,
+                },
+                $unset: {
+                    "userProfile.email": 1,
+                    "userProfile.maskedEmail": 1,
+                    "userProfile.maskedPhone": 1,
+                    "userProfile.recoveryEmail": 1,
+                    "userProfile.phone": 1,
+                    "userProfile.lastName": 1,
+                    "userProfile.prevUsedPhone": 1,
+                    "userProfile.prevUsedEmail": 1,
+                    "userProfile.recoveryPhone": 1,
+                    "userProfile.dob": 1
+                },
+                };
+                let deleteUserPIIDataResult = await projectQueries.updateMany(filter, updateProfile)
+                if (deleteUserPIIDataResult && deleteUserPIIDataResult.nModified > 0) {
+                    if(telemetryEventOnOff !== CONSTANTS.common.OFF){
+                        /**
+                         * Telemetry Raw Event
+                         * {"eid":"","ets":1700188609568,"ver":"3.0","mid":"e55a91cd-7964-46bc-b756-18750787fb32","actor":{},"context":{"channel":"","pdata":{"id":"projectservice","pid":"manage-learn","ver":"7.0.0"},"env":"","cdata":[{"id":"adf3b621-619b-4195-a82d-d814eecdb21f","type":"Request"}],"rollup":{}},"object":{},"edata":{}}
+                         */
+                        let rawEvent = await UTILS.generateTelemetryEventSkeletonStructure();
+                        rawEvent.eid = CONSTANTS.common.AUDIT;
+                        rawEvent.context.channel = userDeleteEvent.context.channel;
+                        rawEvent.context.env = CONSTANTS.common.USER;
+                        rawEvent.edata.state = CONSTANTS.common.DELETE_STATE;
+                        rawEvent.edata.type = CONSTANTS.common.USER_DELETE_TYPE;
+                        rawEvent.edata.props = [];
+                        let userObject = {
+                            id: userId,
+                            type: CONSTANTS.common.USER,
+                        };
+                        rawEvent.actor = userObject;
+                        rawEvent.object = userObject;
+                        rawEvent.context.pdata.pid = `${process.env.ID}.${CONSTANTS.common.USER_DELETE_MODULE}`
+
+                        let telemetryEvent = await UTILS.generateTelemetryEvent(rawEvent);
+                        telemetryEvent.lname = CONSTANTS.common.TELEMTRY_EVENT_LOGGER;
+                        telemetryEvent.level = CONSTANTS.common.INFO_LEVEL
+
+                        await kafkaProducersHelper.pushTelemetryEventToKafka(telemetryEvent);
+                    }
+                    return resolve({ success: true });
+                }else{
+                    return resolve({ success: true });
+                }
+            } catch (error) {
+                return reject(error);
+            }
+        });
+    }
 
     /**
       * Projects boolean data.

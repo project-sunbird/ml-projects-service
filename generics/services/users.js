@@ -38,7 +38,16 @@ const profile = function ( token,userId = "" ) {
                     
                     let response = JSON.parse(data.body);
                     if( response.responseCode === HTTP_STATUS_CODE['ok'].code ) {
-                        result["data"] = response.result;
+                        result["data"] =  _.omit(response.result, [
+                            "response.email",
+                            "response.maskedEmail",
+                            "response.maskedPhone",
+                            "response.recoveryEmail",
+                            "response.phone",
+                            "response.prevUsedPhone",
+                            "response.prevUsedEmail",
+                            "response.recoveryPhone",
+                        ]);
                     } else {
                         result.success = false;
                     }

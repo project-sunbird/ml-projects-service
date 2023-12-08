@@ -6,6 +6,7 @@
 */
 // Dependencies
 const {validate : uuidValidate,v4 : uuidV4} = require('uuid');
+const packageData = require(PROJECT_ROOT_DIRECTORY + "/package.json");
 /**
   * convert camel case to title case.
   * @function
@@ -360,6 +361,66 @@ function operatorValidation(valueLhs, valueRhs, operator) {
   })          
 }
 
+/**
+ * generate uuid
+ * @function
+ * @name generateUUId
+ * @returns {String} returns uuid.
+ */
+
+function generateUUId() {
+  return uuidV4();
+}
+
+
+/**
+ * generate skeleton telemetry raw event
+ * @function
+ * @name generateTelemetryEventSkeletonStructure
+ * @returns {Object} returns uuid.
+ */
+ function generateTelemetryEventSkeletonStructure() {
+  let telemetrySkeleton = {
+    eid: "",
+    ets: epochTime(),
+    ver: CONSTANTS.common.TELEMETRY_VERSION,
+    mid: generateUUId(),
+    actor: {},
+    context: {
+      channel: "",
+      pdata: {
+        id: process.env.ID,
+        ver: packageData.version,
+      },
+      env: "",
+      cdata: [],
+      rollup: {},
+    },
+    object: {},
+    edata: {},
+  };
+  return telemetrySkeleton;
+}
+
+/**
+ * generate telemetry event
+ * @function
+ * @name generateTelemetryEvent
+ * @returns {Object} returns uuid.
+ */
+ function generateTelemetryEvent(rawEvent) {
+  let telemetryEvent = {
+    timestamp: new Date(),
+    msg: JSON.stringify(rawEvent),
+    lname: "",
+    tname: "",
+    level: "",
+    HOSTNAME: "",
+    "application.home": "",
+  };
+  return telemetryEvent;
+}
+
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
   lowerCase : lowerCase,
@@ -376,5 +437,7 @@ module.exports = {
   checkValidUUID : checkValidUUID,
   createComparableDates : createComparableDates,
   noOfElementsInArray : noOfElementsInArray,
-  operatorValidation : operatorValidation
+  operatorValidation : operatorValidation,
+  generateTelemetryEventSkeletonStructure : generateTelemetryEventSkeletonStructure,
+  generateTelemetryEvent : generateTelemetryEvent
 };

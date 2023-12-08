@@ -10,7 +10,8 @@
 const kafka = require('kafka-node');
 const SUBMISSION_TOPIC = process.env.SUBMISSION_TOPIC;
 const CERTIFICATE_TOPIC = process.env.PROJECT_SUBMISSION_TOPIC;
-
+const USER_DELETE_TOPIC = process.env.USER_DELETE_TOPIC;
+const USER_DELETE_ON_OFF = process.env.USER_DELETE_ON_OFF
 /**
   * Kafka configurations.
   * @function
@@ -51,6 +52,11 @@ const connect = function() {
       process.env.KAFKA_URL
     );
 
+    // user Delete Consumer
+    if(USER_DELETE_ON_OFF !== "OFF") {
+      _sendToKafkaConsumers(USER_DELETE_TOPIC, process.env.KAFKA_URL);
+    }
+
     return {
       kafkaProducer: producer,
       kafkaClient: client
@@ -67,7 +73,7 @@ const connect = function() {
 */
 
 var _sendToKafkaConsumers = function (topic,host) {
-
+    
   if (topic && topic != "") {
 
     let consumer = new kafka.ConsumerGroup(
@@ -94,6 +100,11 @@ var _sendToKafkaConsumers = function (topic,host) {
         projectCertificateConsumer.messageReceived(message);
       }
 
+      // call userDelete consumer
+      if (message && message.topic === USER_DELETE_TOPIC) {
+        userDeleteConsumer.messageReceived(message);
+      }
+
     });
 
     consumer.on('error', async function (error) {
@@ -103,6 +114,10 @@ var _sendToKafkaConsumers = function (topic,host) {
       }
       if(error.topics && error.topics[0] === CERTIFICATE_TOPIC) {
         projectCertificateConsumer.errorTriggered(error);
+      }
+
+      if (error.topics && error.topics[0] === USER_DELETE_TOPIC) {
+        userDeleteConsumer.errorTriggered(error);
       }
 
     });
