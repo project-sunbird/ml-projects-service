@@ -23,6 +23,7 @@ const userServiceUrl = "http://learner-service:9000";
 const userReadEndpoint = "/private/user/v1/read";
 const endPoint = "/v1/location/search";
 const orgSearchEndPoint = "/v1/org/search";
+const limit = "100";
 
 (async () => {
   let connection = await MongoClient.connect(url, { useNewUrlParser: true });
@@ -41,9 +42,13 @@ const orgSearchEndPoint = "/v1/org/search";
       .find({userProfile: { $exists: false }} )
       .project({ _id: 1 })
       .toArray();
-
+    console.log(projectDocument.length)
+    if(limit !== "all"){
+      projectDocument = projectDocument.slice(0,parseInt(limit))
+    }
+    console.log(projectDocument.length)
     //make it in chunks so that we can iterate over
-    let chunkOfProjectDocument = _.chunk(projectDocument, 10);
+    let chunkOfProjectDocument = _.chunk(projectDocument, 100);
     let projectIds;
 
     for (
