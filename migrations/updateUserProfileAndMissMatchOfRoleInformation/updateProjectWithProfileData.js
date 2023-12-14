@@ -23,7 +23,7 @@ const userServiceUrl = "http://learner-service:9000";
 const userReadEndpoint = "/private/user/v1/read";
 const endPoint = "/v1/location/search";
 const orgSearchEndPoint = "/v1/org/search";
-const limit = "100";
+const limit = "10";
 
 (async () => {
   let connection = await MongoClient.connect(url, { useNewUrlParser: true });
