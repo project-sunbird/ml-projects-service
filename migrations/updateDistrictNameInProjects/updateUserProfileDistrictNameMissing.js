@@ -21,6 +21,9 @@ const request = require("request");
 
 const userServiceUrl = "http://learner-service:9000";
 const userReadEndpoint = "/private/user/v1/read";
+const endPoint = "/v1/location/search";
+const orgSearchEndPoint = "/v1/org/search";
+
 (async () => {
   let connection = await MongoClient.connect(url, { useNewUrlParser: true });
   let db = connection.db(dbName);
@@ -73,7 +76,7 @@ const userReadEndpoint = "/private/user/v1/read";
                 $set: {
                   userRoleInformation:
                     userDetailsForProject.userRoleInformation,
-                  userProfile: userDetailsForProject.profile,
+                  userProfile: userDetailsForProject.userProfile,
                 },
               },
             },
@@ -107,39 +110,259 @@ const userReadEndpoint = "/private/user/v1/read";
       }
     );
     // this function is used to get userRoleInformation from userProfile
-    function getUserRoleAndProfileWithUpdatedData(
+    async function getUserRoleAndProfileWithUpdatedData(
       profile,
       userRoleInformation
     ) {
-      for (let counter = 0; counter < profile.userLocations.length; counter++) {
-        if (profile.userLocations[counter].type === "school") {
-          userRoleInformation.school = profile.userLocations[counter].code;
-        } else {
-          userRoleInformation[profile.userLocations[counter].type] =
-            profile.userLocations[counter].id;
+        let userProfile = profile;
+        if(userRoleInformation.role) { // Check if userRoleInformation has role value.
+            let rolesInUserRoleInformation = userRoleInformation.role.split(","); // userRoleInfomration.role can be multiple with comma separated.
+
+            let resetCurrentUserProfileRoles = false; // Flag to reset current userProfile.profileUserTypes i.e. if current role in profile is not at all there in userRoleInformation.roles
+            // Check if userProfile.profileUserTypes exists and is an array of length > 0
+            if(userProfile.profileUserTypes && Array.isArray(userProfile.profileUserTypes) && userProfile.profileUserTypes.length >0) {
+
+                // Loop through current roles in userProfile.profileUserTypes
+                for (let pointerToCurrentProfileUserTypes = 0; pointerToCurrentProfileUserTypes < userProfile.profileUserTypes.length; pointerToCurrentProfileUserTypes++) {
+                    const currentProfileUserType = userProfile.profileUserTypes[pointerToCurrentProfileUserTypes];
+
+                    if(currentProfileUserType.subType && currentProfileUserType.subType !== null) { // If the role has a subType
+
+                        // Check if subType exists in userRoleInformation role, if not means profile data is old and should be reset.
+                        if(!userRoleInformation.role.toUpperCase().includes(currentProfileUserType.subType.toUpperCase())) {
+                            resetCurrentUserProfileRoles = true; // Reset userProfile.profileUserTypes
+                            break;
+                        }
+                    } else { // If the role subType is null or is not there
+
+                        // Check if type exists in userRoleInformation role, if not means profile data is old and should be reset.
+                        if(!userRoleInformation.role.toUpperCase().includes(currentProfileUserType.type.toUpperCase())) {
+                            resetCurrentUserProfileRoles = true; // Reset userProfile.profileUserTypes
+                            break;
+                        }
+                    }
+                }
+            }
+            if(resetCurrentUserProfileRoles) { // Reset userProfile.profileUserTypes
+                userProfile.profileUserTypes = new Array;
+            }
+
+            // Loop through each subRole in userRoleInformation
+            for (let pointerToRolesInUserInformation = 0; pointerToRolesInUserInformation < rolesInUserRoleInformation.length; pointerToRolesInUserInformation++) {
+                const subRole = rolesInUserRoleInformation[pointerToRolesInUserInformation];
+
+                // Check if userProfile.profileUserTypes exists and is an array of length > 0
+                if(userProfile.profileUserTypes && Array.isArray(userProfile.profileUserTypes) && userProfile.profileUserTypes.length >0) {
+                    if(!_.find(userProfile.profileUserTypes, { 'type': subRole.toLowerCase() }) && !_.find(userProfile.profileUserTypes, { 'subType': subRole.toLowerCase() })) { 
+                        updateUserProfileRoleInformation = true; // Need to update userProfile.profileUserTypes
+                        if(subRole.toUpperCase() === "TEACHER") { // If subRole is not teacher
+                            userProfile.profileUserTypes.push({
+                                "subType" : null,
+                                "type" : "teacher"
+                            })
+                        } else { // If subRole is not teacher
+                            userProfile.profileUserTypes.push({
+                                "subType" : subRole.toLowerCase(),
+                                "type" : "administrator"
+                            })
+                        }
+                    }
+                } else { // Make a new entry if userProfile.profileUserTypes is empty or does not exist.
+                    updateUserProfileRoleInformation = true; // Need to update userProfile.profileUserTypes
+                    userProfile.profileUserTypes = new Array;
+                    if(subRole.toUpperCase() === "TEACHER") { // If subRole is teacher
+                        userProfile.profileUserTypes.push({
+                            "subType" : null,
+                            "type" : "teacher"
+                        })
+                    } else { // If subRole is not teacher
+                        userProfile.profileUserTypes.push({
+                            "subType" : subRole.toLowerCase(),
+                            "type" : "administrator"
+                        })
+                    }
+                }
+            }
         }
-      }
-      if (userRoleInformation.hasOwnProperty("role")) {
-        //get RoleInformation
-        let userRoles = userRoleInformation.role.split(",");
-        profile.profileUserType = new Array();
-        for (let j = 0; j < userRoles.length; j++) {
-          if (userRoles[j].toUpperCase() === "TEACHER") {
-            // If subRole is teacher
-            profile.profileUserType.push({
-              subType: null,
-              type: "teacher",
-            });
-          } else {
-            // If subRole is not teacher
-            profile.profileUserType.push({
-              subType: userRoles[j].toLowerCase(),
-              type: "administrator",
-            });
+
+        // If userProfile.userLocations has to be updated, get all values and set in userProfile.
+        if(userProfile.profileLocation) {
+          //update userLocations in userProfile
+          let locationIds = [];
+          let locationCodes = [];
+          let userLocations = new Array;
+
+          let schoolData = userProfile.organisations.filter(organisations=>{
+            if(organisations.organisationId !== userProfile.rootOrgId){
+              return organisations;
+            }
+          })
+          if(schoolData.length > 0){
+            let orgSearchQuery = {
+              "id": schoolData[0].id
+            }
+            let schoolCode = await orgSearch(orgSearchQuery);
+            if ( schoolCode.success ) {
+              locationCodes = schoolCode.data.content[0].externalId;
+            }
           }
+      
+            
+
+            userProfile.profileLocation.forEach( locationId => {
+              locationIds.push(locationId.id);
+            })
+
+            //query for fetch location using id
+            if ( locationIds.length > 0 ) {
+                let locationQuery = {
+                    "id" : locationIds
+                }
+
+                let entityData = await locationSearch(locationQuery);
+                if ( entityData.success ) {
+                    userLocations = entityData.data;
+                }
+            }
+
+            // query for fetch location using code
+            if ( locationCodes.length > 0 ) {
+                let codeQuery = {
+                    "code" : locationCodes
+                }
+
+                let entityData = await locationSearch(codeQuery);
+                if ( entityData.success ) {
+                    userLocations =  userLocations.concat(entityData.data);
+                }
+            }
+
+            if ( userLocations.length > 0 ) {
+                userProfile["userLocations"] = userLocations;
+            }
         }
-      }
-      return { userRoleInformation: userRoleInformation, profile: profile };
+
+        userProfile.userLocations.forEach((locations)=>{
+          if(locations.type === "school"){
+            userRoleInformation[locations.type] = locations.code
+          }else {
+            userRoleInformation[locations.type] = locations.id
+          }
+        })
+        return {userProfile: userProfile, userRoleInformation: userRoleInformation}
+    }
+
+    function locationSearch(filterData) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          let bodyData = {};
+          bodyData["request"] = {};
+          bodyData["request"]["filters"] = filterData;
+          const url = userServiceUrl + endPoint;
+          const options = {
+            headers: {
+              "content-type": "application/json",
+            },
+            json: bodyData,
+          };
+
+          request.post(url, options, requestCallback);
+
+          let result = {
+            success: true,
+          };
+
+          function requestCallback(err, data) {
+            if (err) {
+              result.success = false;
+              console.log("failed to get location")
+            } else {
+              let response = data.body;
+              if (
+                response.responseCode === "OK" &&
+                response.result &&
+                response.result.response &&
+                response.result.response.length > 0
+              ) {
+                let entityResult = new Array();
+                response.result.response.map((entityData) => {
+                  let entity = _.omit(entityData, ["identifier"]);
+                  entityResult.push(entity);
+                });
+                result["data"] = entityResult;
+                result["count"] = response.result.count;
+              } else {
+                result.success = false;
+              }
+            }
+            return resolve(result);
+          }
+
+          setTimeout(function () {
+            console.log("failed to get location")
+            return resolve(
+              (result = {
+                success: false,
+              })
+            );
+          }, 5000);
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    }
+
+    function orgSearch(filterData) {
+      return new Promise(async (resolve, reject) => {
+        try {
+          let bodyData = {};
+          bodyData["request"] = {};
+          bodyData["request"]["filters"] = filterData;
+          const url = userServiceUrl + orgSearchEndPoint;
+          const options = {
+            headers: {
+              "content-type": "application/json",
+            },
+            json: bodyData,
+          };
+
+          request.post(url, options, requestCallback);
+
+          let result = {
+            success: true,
+          };
+
+          function requestCallback(err, data) {
+            if (err) {
+              result.success = false;
+              console.log("failed to get org")
+            } else {
+              let response = data.body;
+              if (
+                response.responseCode === "OK" &&
+                response.result &&
+                response.result.response
+              ) {
+                result["data"] = response.result.response;
+              } else {
+                result.success = false;
+              }
+            }
+            return resolve(result);
+          }
+
+          setTimeout(function () {
+            return resolve(
+              console.log("failed to get org")
+              (result = {
+                success: false,
+              })
+            );
+          }, 5000);
+        } catch (error) {
+          return reject(error);
+        }
+      });
     }
 
     function profileReadPrivate(userId) {
@@ -158,6 +381,7 @@ const userReadEndpoint = "/private/user/v1/read";
           function userReadCallback(err, data) {
             if (err) {
               result.success = false;
+              console.log("failed to get profile"+ userId)
             } else {
               let response = JSON.parse(data.body);
               if (response.responseCode === "OK") {
@@ -168,6 +392,14 @@ const userReadEndpoint = "/private/user/v1/read";
             }
             return resolve(result);
           }
+          setTimeout(function () {
+            return resolve(
+              console.log("failed to get profile"+ userId)
+              (result = {
+                success: false,
+              })
+            );
+          }, 5000);
         } catch (error) {
           return reject(error);
         }
