@@ -1275,7 +1275,12 @@ module.exports = class UserProjectsHelper {
                             ) {
                                     projectCreation.data.userProfile = userProfile.data.response;
                                     addReportInfoToSolution = true; 
-                            } 
+                            } else {
+                                throw {
+                                    message: CONSTANTS.apiResponses.FAILED_TO_START_RESOURCE,
+                                    status: HTTP_STATUS_CODE["failed_dependency"].status,
+                                };
+                            }
                         }
 
                     } else {
@@ -1288,7 +1293,12 @@ module.exports = class UserProjectsHelper {
                         ) {
                                 projectCreation.data.userProfile = userProfileData.data.response;
                                 addReportInfoToSolution = true; 
-                        } 
+                        } else {
+                            throw {
+                                message: CONSTANTS.apiResponses.FAILED_TO_START_RESOURCE,
+                                status: HTTP_STATUS_CODE["failed_dependency"].status,
+                            };
+                        }
                     }
 
                     projectCreation.data.userRoleInformation = userRoleInformation;
