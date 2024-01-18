@@ -136,5 +136,6 @@ module.exports = {
     "ISSUER_KID_NOT_FOUND" : "Failed to fetch certificate issuer kid",
     "PROJECT_SUBMITTED_FOR_REISSUE" : "Submitted for project certificate reIssue",
     "PROGRAM_JOIN_FAILED" : "Failed to join program",
-    "FAILED_TO_START_RESOURCE": "There was an error in starting/joining. Please try again after some time."
+    "FAILED_TO_START_RESOURCE": "There was an error in starting/joining. Please try again after some time.",
+    "ENTITY_FETCHED": "Entities fetched successfull",
 };

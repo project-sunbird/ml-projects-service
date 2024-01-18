@@ -29,6 +29,7 @@ const certificateValidationsHelper = require(MODULES_BASE_PATH + "/certificateVa
 const _ = require("lodash");  
 const programUsersQueries = require(DB_QUERY_BASE_PATH + "/programUsers");
 const telemetryEventOnOff = process.env.TELEMETRY_ON_OFF
+const entitieHelper = require(MODULES_BASE_PATH + "/entities/helper")
 /**
     * UserProjectsHelper
     * @class
@@ -1280,6 +1281,13 @@ module.exports = class UserProjectsHelper {
                 solutionExternalId = templateDocuments[0].solutionExternalId;
             }
             
+            if(bodyData.hasOwnProperty("detailsPayload")){
+                let detailsPayload = {...bodyData.detailsPayload}
+                delete bodyData.detailsPayload
+                bodyData = {...detailsPayload, ...bodyData}
+
+            }
+            
             let userRoleInformation = _.omit(bodyData,["referenceFrom","submissions","hasAcceptedTAndC","link"]);
             
             if (projectId === "") {
@@ -1487,38 +1495,59 @@ module.exports = class UserProjectsHelper {
                                     getUserProfileFromObservation = true;
                                 }
                                 projectCreation.data.submissions = bodyData.submissions;
+
+                                let entityInformation = 
+                                await entitieHelper.listByLocationIds(
+                                    [bodyData.submissions.entityId] 
+                                );
+    
+                                if( !entityInformation.success ) {
+                                    throw {
+                                        message : CONSTANTS.apiResponses.ENTITY_NOT_FOUND,
+                                        status : HTTP_STATUS_CODE['bad_request'].status
+                                    }
+                                }
+    
+                                let entityDetails = await _entitiesMetaInformation(
+                                    entityInformation.data
+                                );
+    
+                                if ( entityDetails && entityDetails.length > 0 ) {
+                                    projectCreation.data["entityInformation"] = entityDetails[0];
+                                }
+            
+                                projectCreation.data.entityId = entityInformation.data[0]._id;
+                            }
+                        } else {
+                            if( 
+                                solutionDetails.entityType && bodyData[solutionDetails.entityType] 
+                            ) {
+                                let entityInformation = 
+                                await entitieHelper.listByLocationIds(
+                                    [bodyData[solutionDetails.entityType]] 
+                                );
+    
+                                if( !entityInformation.success ) {
+                                    throw {
+                                        message : CONSTANTS.apiResponses.ENTITY_NOT_FOUND,
+                                        status : HTTP_STATUS_CODE['bad_request'].status
+                                    }
+                                }
+    
+                                let entityDetails = await _entitiesMetaInformation(
+                                    entityInformation.data
+                                );
+    
+                                if ( entityDetails && entityDetails.length > 0 ) {
+                                    projectCreation.data["entityInformation"] = entityDetails[0];
+                                }
+            
+                                projectCreation.data.entityId = entityInformation.data[0]._id;
                             }
                         }
     
                         if( bodyData.role ) {
                             projectCreation.data["userRole"] = bodyData.role;
-                        }
-
-                        if( 
-                            solutionDetails.entityType && bodyData[solutionDetails.entityType] 
-                        ) {
-                            let entityInformation = 
-                            await surveyService.listEntitiesByLocationIds(
-                                userToken,
-                                [bodyData[solutionDetails.entityType]] 
-                            );
-
-                            if( !entityInformation.success ) {
-                                throw {
-                                    message : CONSTANTS.apiResponses.ENTITY_NOT_FOUND,
-                                    status : HTTP_STATUS_CODE['bad_request'].status
-                                }
-                            }
-
-                            let entityDetails = await _entitiesMetaInformation(
-                                entityInformation.data
-                            );
-
-                            if ( entityDetails && entityDetails.length > 0 ) {
-                                projectCreation.data["entityInformation"] = entityDetails[0];
-                            }
-        
-                            projectCreation.data.entityId = entityInformation.data[0]._id;
                         }
     
                     }
@@ -1594,6 +1623,7 @@ module.exports = class UserProjectsHelper {
                     
                     //compare & update userProfile with userRoleInformation
                     if ( projectCreation.data.userProfile && userRoleInformation && Object.keys(userRoleInformation).length > 0 && Object.keys(projectCreation.data.userProfile).length > 0 ) {
+
                         let updatedUserProfile = await _updateUserProfileBasedOnUserRoleInfo(
                             projectCreation.data.userProfile,
                             userRoleInformation
@@ -1602,8 +1632,31 @@ module.exports = class UserProjectsHelper {
                         if (updatedUserProfile && updatedUserProfile.success == true && updatedUserProfile.profileMismatchFound == true) {
                             projectCreation.data.userProfile = updatedUserProfile.data;
                         }
+                        // checking the reqbody data and userLocation type matches or not
+                        for (let key in userRoleInformation) {
+                            // Skip role validation
+                            if (key === 'role') {
+                                continue;
+                            }
+                            let dataPresent;
+                            if (key === 'school') {
+                                dataPresent = projectCreation.data.userProfile.userLocations.find(location => location.code === userRoleInformation[key]);
+                            } else {
+                                dataPresent = projectCreation.data.userProfile.userLocations.find(location => location.id === userRoleInformation[key]);
+                            }
+                            if (!dataPresent) {
+                                throw {
+                                    message: CONSTANTS.apiResponses.FAILED_TO_START_RESOURCE,
+                                    status: HTTP_STATUS_CODE["failed_dependency"].status,
+                                };
+                            }
+                        } 
+                    } else {
+                        throw {
+                            message: CONSTANTS.apiResponses.FAILED_TO_START_RESOURCE,
+                            status: HTTP_STATUS_CODE["failed_dependency"].status,
+                        };
                     }
-    
                     let project = await projectQueries.createProject(projectCreation.data);
                     
                     if ( addReportInfoToSolution && project.solutionId ) {
