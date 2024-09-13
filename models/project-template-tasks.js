@@ -25,7 +25,8 @@ module.exports = {
         },
         isDeleted : {
             type : Boolean,
-            default : false
+            default : false,
+            index: true
         },
         externalId : {
             type : String,
@@ -79,6 +80,9 @@ module.exports = {
         learningResources : {
             type : Array,
             default : []
+        },
+        sequenceNumber: {
+            type : String
         }
     }
 };

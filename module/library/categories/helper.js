@@ -6,8 +6,11 @@
  */
 
 // Dependencies 
-const kendraService = require(GENERICS_FILES_PATH + "/services/kendra");
+const coreService = require(GENERICS_FILES_PATH + "/services/core");
 const sessionHelpers = require(GENERIC_HELPERS_PATH+"/sessions");
+const projectCategoriesQueries = require(DB_QUERY_BASE_PATH + "/projectCategories");
+const projectTemplateQueries = require(DB_QUERY_BASE_PATH + "/projectTemplates");
+const projectTemplateTaskQueries = require(DB_QUERY_BASE_PATH + "/projectTemplateTask");
 const moment = require("moment-timezone");
 
 /**
@@ -16,161 +19,6 @@ const moment = require("moment-timezone");
 */
 
 module.exports = class LibraryCategoriesHelper {
-
-      /**
-   * Library project categories documents.
-   * @method
-   * @name categoryDocuments
-   * @param {Object} [findQuery = "all"] - filtered data.
-   * @param {Array} [fields = "all"] - projected data.
-   * @param {Array} [skipFields = "none"] - fields to skip.
-   * @returns {Array} - Library project categories data.
-   */
-
-  static categoryDocuments(
-    findQuery = "all", 
-    fields = "all",
-    skipFields = "none"
-  ) {
-      return new Promise(async (resolve, reject) => {
-        
-        try {
-          
-          let queryObject = {};
-
-          if (findQuery != "all") {
-              queryObject = findQuery;
-          }
-
-          let projection = {};
-
-          if (fields != "all") {
-              fields.forEach(element => {
-                  projection[element] = 1;
-              });
-          }
-
-          if (skipFields != "none") {
-              skipFields.forEach(element => {
-                  projection[element] = 0;
-              });
-          }
-
-          let projectCategoriesData = 
-          await database.models.projectCategories.find(
-            queryObject, 
-            projection
-          ).lean();
-          
-          return resolve(projectCategoriesData);
-
-      } catch (error) {
-          return reject(error);
-        }
-      });
-    }
-
-    /**
-      * List of project categories.
-      * @method
-      * @name list
-      * @returns {Object} Project categories.
-     */
-
-    static list() {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let projectCategoriesData = 
-                await this.categoryDocuments(
-                    {
-                        status : CONSTANTS.common.ACTIVE_STATUS
-                    },
-                    [
-                        "externalId",
-                        "name",
-                        "icon",
-                        "updatedAt",
-                        "noOfProjects"
-                    ]
-                );
-
-                if( !projectCategoriesData.length > 0 ) {
-                    throw {
-                        status : HTTP_STATUS_CODE['ok'].status,
-                        message : CONSTANTS.apiResponses.LIBRARY_CATEGORIES_NOT_FOUND
-                    };
-                }
-
-
-                let categories = {};
-                let icons = [];
-                
-                projectCategoriesData.map(category => {
-                    
-                    categories[category.icon] = {
-                        name : category.name,
-                        type : category.externalId,
-                        updatedAt : category.updatedAt,
-                        projectsCount : category.noOfProjects ? category.noOfProjects : 0
-                    };
-
-                    if( category.icon !== "" ) {
-                        icons.push(category.icon);
-                    }
-
-                });
-
-                let projectCategories = "";
-
-                if( icons.length > 0 ) {
-                    
-                    projectCategories = 
-                    await kendraService.getDownloadableUrl(
-                        {
-                            filePaths : icons
-                        }
-                    );
-                    
-                    if( !projectCategories.success ) {
-                        throw {
-                            status : HTTP_STATUS_CODE['bad_request'].status,
-                            message : CONSTANTS.apiResponses.KENDRA_URL_NOT_FETCHED
-                        }
-                    }
-
-                    projectCategories = 
-                    projectCategories.data.map( downloadableImage => {
-                        return _.merge(
-                            categories[downloadableImage.filePath],
-                            { url : downloadableImage.url }
-                        )
-                    });
-                    
-                } else {
-                    projectCategories = Object.values(categories);
-                }
-
-                projectCategories = projectCategories.sort((a,b)=> a.name.toString() > b.name.toString() ? 1 : -1);
-
-                return resolve({
-                  success: true,
-                  message : CONSTANTS.apiResponses.PROJECT_CATEGORIES_FETCHED,
-                  data : projectCategories
-                });
-
-            } catch (error) {
-                return resolve({
-                    status : 
-                    error.status ? 
-                    error.status : HTTP_STATUS_CODE['internal_server_error'].status,
-                    success: false,
-                    message: error.message,
-                    data: []
-                });
-            }
-        })
-    }
 
       /**
       * List of library projects.
@@ -252,8 +100,7 @@ module.exports = class LibraryCategoriesHelper {
                     }
                 });
 
-                let result = 
-                await database.models.projectTemplates.aggregate(aggregateData);
+                let result = await projectTemplateQueries.getAggregate(aggregateData);
 
                 if( result[0].data.length > 0 ) {
                     
@@ -289,6 +136,44 @@ module.exports = class LibraryCategoriesHelper {
     }
 
     /**
+      * Update categories
+      * @method
+      * @name update
+      * @param filterQuery - Filter query.
+      * @param updateData - Update data.
+      * @returns {Object} updated data
+     */
+
+    static update(filterQuery,updateData) {    
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let categoriesUpdated = await projectCategoriesQueries.updateMany(filterQuery,updateData);
+
+                if( !categoriesUpdated.ok ) {
+                    throw {
+                        status : HTTP_STATUS_CODE['bad_request'].status,
+                        message : CONSTANTS.apiResponses.PROJECT_CATEGORIES_NOT_UPDATED
+                    }
+                }
+
+                return resolve({
+                    success: true,
+                    message : CONSTANTS.apiResponses.PROJECT_CATEGORIES_UPDATED,
+                    data : categoriesUpdated
+                });
+
+            } catch (error) {   
+                return resolve({
+                    success: false,
+                    message: error.message,
+                    data : {}
+                });
+            }
+        })
+    }
+
+     /**
       * Details of library projects.
       * @method
       * @name projectDetails
@@ -296,41 +181,37 @@ module.exports = class LibraryCategoriesHelper {
       * @returns {Object} Details of library projects.
      */
 
-    static projectDetails(projectId,userToken = "") {    
+    static projectDetails(projectId, userToken = "", isATargetedSolution = "") {    
         return new Promise(async (resolve, reject) => {
             try {
 
-                let projectsData = 
-                await database.models.projectTemplates.find(
+                let projectsData = await projectTemplateQueries.templateDocument(
                     {
-                        status : CONSTANTS.common.PUBLISHED,
                         "_id" : projectId,
-                        "isDeleted" : false
-                    },{
-                       "__v" : 0
-                    }
-                ).lean();
-                
-                if( !projectsData.length > 0 ) {
+                        status : CONSTANTS.common.PUBLISHED,
+                        "isDeleted" : false,
+                    }, "all", ["__v"]);
+
+                if( !(projectsData.length > 0 )) {
                     throw {
                         status : HTTP_STATUS_CODE['bad_request'].status,
                         message : CONSTANTS.apiResponses.PROJECT_NOT_FOUND,
                     };
                 }
-
+                
                 projectsData[0].showProgramAndEntity = false;
 
                 if( projectsData[0].tasks && projectsData[0].tasks.length > 0 ) {
 
-                    let tasks = 
-                    await database.models.projectTemplateTasks.find({
-                        _id : {
+                    let tasks = await projectTemplateTaskQueries.taskDocuments(
+                    {
+                       _id : {
                             $in : projectsData[0].tasks
                         },
                         isDeleted : false
-                    }).lean();
+                    });
 
-                    if( tasks &&  tasks.length > 0 ) {
+                    if( tasks && tasks.length > 0 ) {
 
                         let taskData = {};
 
@@ -339,6 +220,7 @@ module.exports = class LibraryCategoriesHelper {
                             taskPointer < tasks.length; 
                             taskPointer ++ 
                         ) {
+
                             let currentTask = tasks[taskPointer];
                             
                             if( 
@@ -371,87 +253,15 @@ module.exports = class LibraryCategoriesHelper {
                     }
                 }
 
-                if( userToken !== "" ) {
-                    
-                    let userProfileData = await kendraService.getProfile(userToken);
-
-                    if( !userProfileData.success ) {
-                        throw {
-                            status : HTTP_STATUS_CODE['bad_request'].status,
-                            message : CONSTANTS.apiResponses.USER_PROFILE_NOT_FOUND
-                        }
-                    }
-
-                    projectsData[0].userRating = 0;
-
-                    if( 
-                        userProfileData.data &&
-                        userProfileData.data.ratings && 
-                        userProfileData.data.ratings.length > 0 
-                    ) {
-    
-                        let projectIndex = 
-                        userProfileData.data.ratings.findIndex(   
-                            project => project._id.toString() === projectId.toString() 
-                        );
-    
-                        if( projectIndex > 0 ) {
-                            projectsData[0].userRating = userProfileData.data.ratings[projectIndex].rating;
-                        }
-                    } 
-                }
-
                 return resolve({
                     success: true,
                     message : CONSTANTS.apiResponses.PROJECTS_FETCHED,
                     data : projectsData[0]
                 });
 
-            } catch (error) {   
+            } catch (error) {
                 return resolve({
                     status : error.status ? error.status : HTTP_STATUS_CODE['internal_server_error'].status,
-                    success: false,
-                    message: error.message,
-                    data : {}
-                });
-            }
-        })
-    }
-
-    /**
-      * Update categories
-      * @method
-      * @name update
-      * @param filterQuery - Filter query.
-      * @param updateData - Update data.
-      * @returns {Object} updated data
-     */
-
-    static update(filterQuery,updateData) {    
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let categoriesUpdated = 
-                await database.models.projectCategories.updateMany(
-                    filterQuery,
-                    updateData
-                );
-
-                if( !categoriesUpdated.ok ) {
-                    throw {
-                        status : HTTP_STATUS_CODE['bad_request'].status,
-                        message : CONSTANTS.apiResponses.PROJECT_CATEGORIES_NOT_UPDATED
-                    }
-                }
-
-                return resolve({
-                    success: true,
-                    message : CONSTANTS.apiResponses.PROJECT_CATEGORIES_UPDATED,
-                    data : categoriesUpdated
-                });
-
-            } catch (error) {   
-                return resolve({
                     success: false,
                     message: error.message,
                     data : {}

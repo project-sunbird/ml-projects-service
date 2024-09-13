@@ -22,7 +22,6 @@ module.exports = {
     USER_PRIVATE_PROGRAMS : "/v1/users/privatePrograms",
     UPDATE_SOLUTIONS : "/v1/solutions/updateSolutions",
     LIST_PROGRAMS : "/v1/programs/list",
-    GET_USER_ORGANISATIONS : "/v1/users/getUserOrganisationsAndRootOrganisations",
     PRESIGNED_GCP_URL : "/v1/cloud-services/gcp/preSignedUrls", // Kendra service
     PRESIGNED_AWS_URL : "/v1/cloud-services/aws/preSignedUrls", // Kendra service
     PRESIGNED_AZURE_URL : "/v1/cloud-services/azure/preSignedUrls", // Kendra service,
@@ -44,5 +43,15 @@ module.exports = {
     SOLUTION_DETAILS_BASED_ON_ROLE_LOCATION : "/v1/solutions/detailsBasedOnRoleAndLocation",
     LIST_ENTITIES_BY_LOCATION_IDS : "/v1/entities/listByLocationIds",
     CREATE_IMPROVEMENT_PROJECT_SOLUTION : "/v1/solutions/create",
-    PROJECT_AND_TASK_REPORT : "/v1/improvement-project/projectAndTaskReport"
+    PROJECT_AND_TASK_REPORT : "/v1/improvement-project/projectAndTaskReport",
+    FILES_DOWNLOADABLE_URL: "/v1/cloud-services/files/getDownloadableUrl",
+    OBSERVATION_DETAILS : "/v1/observations/details",
+    USER_READ_V5 : "/v5/user/read",
+    GET_LOCATION_DATA : "/v1/location/search",
+    CERTIFICATE_CREATE : "/api/v1/ProjectCertificate",
+    PROJECT_CERTIFICATE_API_CALLBACK : "/v1/userProjects/certificateCallback",
+    USER_READ_PRIVATE : "/private/user/v1/read", // !Caution: End point for reading user details without token. Do not use for public work flow
+    GET_CERTIFICATE_KID : "/api/v1/PublicKey/search",
+    PROGRAM_JOIN: "/v1/programs/join",
+    IS_TARGETED_BASED_ON_USER_PROFILE : "/v1/solutions/isTargetedBasedOnUserProfile",
 };

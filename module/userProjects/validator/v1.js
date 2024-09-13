@@ -9,19 +9,9 @@ module.exports = (req) => {
 
     let projectsValidator = {
 
-        createSelf : function () {
-            req.checkBody('title').exists().withMessage("required project title");
-            req.checkBody('categories').exists().withMessage("required categories for project");
-        },
-        importFromLibrary : function () {
-            req.checkParams('_id').exists().withMessage("required project template id");
-        },
         sync : function () {
             req.checkParams('_id').exists().withMessage("required project id");
             req.checkQuery('lastDownloadedAt').exists().withMessage("required last downloaded at");
-        },
-        details : function () {
-            req.checkParams('_id').exists().withMessage("required project id");
         },
         tasksStatus : function () {
             req.checkParams('_id').exists().withMessage("required project id");
@@ -30,16 +20,26 @@ module.exports = (req) => {
             req.checkParams('_id').exists().withMessage("required project id");
             req.checkQuery('taskId').exists().withMessage("required task id");
         },
-        bulkCreateByUserRoleAndEntity :  function () {
-            req.checkBody('templateId').exists().withMessage("required template id");
-            req.checkBody('entityId').exists().withMessage("required entity id");
-            req.checkBody('role').exists().withMessage("required role");
-        },
         add : function () {
             req.checkBody('title').exists().withMessage("required project title");
         },
         share : function () {
             req.checkParams('_id').exists().withMessage("required project id");
+        },
+        certificateReIssue : function () {
+            req.checkParams('_id').exists().withMessage("required project id");
+        },
+        certificateCallback : function () {
+            req.checkBody("data").exists().withMessage("data is required");
+            req.checkBody("data.transactionId").exists().withMessage("transactionId is required");
+            req.checkBody("data.osid").exists().withMessage("osid is required");
+        },
+        listUserProjects:function(){
+            req.checkQuery('stats')
+            .optional()
+            .isIn(['true','false'])
+            .withMessage("The 'stats' parameter must be either 'true' or 'false' ");
+         
         }
     }
 

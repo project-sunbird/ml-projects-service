@@ -20,6 +20,7 @@ function health_check() {
             return resolve(false)
         });
         db.once("open", function() {
+            db.close(function(){});
             return resolve(true);    
         });
     })

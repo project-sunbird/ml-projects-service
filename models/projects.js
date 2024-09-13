@@ -8,8 +8,14 @@
 module.exports = {
     name: "projects",
     schema: {
-        title : String,
-        description : String,
+        title : {
+            type : String,
+            index: true
+        },
+        description : {
+            type : String,
+            index: true
+        },
         taskReport : {
             type : Object,
             default : {}
@@ -28,20 +34,17 @@ module.exports = {
             default : "",
             index: true
         },
-        createdFor : {
-            type : Array,
-            default : []
-        },
         status : {
             type : String,
-            default : "notStarted",
+            default : "started",
             index: true
         },
         lastDownloadedAt : Date,
         syncedAt : Date,
         isDeleted : {
             type : Boolean,
-            default : false
+            default : false,
+            index: true
         },
         categories : {
             type : Array,
@@ -49,7 +52,8 @@ module.exports = {
         },
         createdBy : {
             type : String,
-            default : "SYSTEM"
+            default : "SYSTEM",
+            index: true
         },
         tasks : {
             type : Array,
@@ -81,16 +85,12 @@ module.exports = {
         },
         startDate: Date,
         endDate: Date,
-        rootOrganisations : {
-            type : [String],
-            default : []
-        },
         learningResources : {
             type : Array,
             default : []
         },
         entityId : {
-            type : "ObjectId",
+            type : String,
             index : true
         },
         programId : {
@@ -109,9 +109,12 @@ module.exports = {
             type : String,
             index : true
         },
-        isAPrivateProgram : Boolean,
+        isAPrivateProgram : {
+            type : Boolean,
+            index : true
+        },
         appInformation : Object,
-        userRoleInformtion : Object,
+        userRoleInformation : Object,
         hasAcceptedTAndC : {
             type : Boolean,
             default : false
@@ -120,6 +123,61 @@ module.exports = {
             type : String,
             index : true
         },
-        submissions : Object
-    }
+        submissions : Object,
+        link : {
+            type : String,
+            index : true
+        },
+        taskSequence : {
+            type : Array,
+            default : []
+        },
+        completedDate: Date,
+        recommendedFor : {
+            type : Array,
+            default : [] 
+        },
+        attachments : {
+            type : Array,
+            default : [] 
+        },
+        remarks : String,
+        userProfile : Object,
+        certificate : {
+            templateId : "ObjectId",
+            osid : {
+                type : String,
+                index : true,
+                unique : true
+            },
+            transactionId : {
+                type : String,
+                index : true,
+                unique : true
+            },
+            templateUrl : String,
+            status : String,
+            eligible : Boolean,
+            message : String,
+            issuedOn : Date,
+            criteria : Object,
+            reIssuedAt : Date,
+            transactionIdCreatedAt : Date,
+            originalTransactionInformation :{
+                transactionId : String,
+                osid : String
+            }
+            
+        }
+    },
+    compoundIndex: [
+        {
+            "name" :{ userId: 1, solutionId: 1 },
+            "indexType" : { unique: true, partialFilterExpression: { solutionId: { $exists: true }}}
+        }
+    ]
+        
+    
+
 };
+

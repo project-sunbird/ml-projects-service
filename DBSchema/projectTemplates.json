@@ -1,0 +1,65 @@
+[
+  {
+    "_id": "5fcf9954546a92494f2e587c",
+    "title": "test",
+    "externalId": "5bd5c4a6-0ccc-41fe-9633-d61ed5378a77",
+    "categories": [],
+    "duration": {
+      "value": "1W",
+      "label": "1 Week"
+    },
+    "difficultyLevel": {
+      "value": "B",
+      "label": "Basic"
+    },
+    "description": "test",
+    "concepts": [""],
+    "keywords": [""],
+    "status": "published",
+    "isDeleted": false,
+    "recommendedFor": [],
+    "tasks": [],
+    "createdAt": "2020-12-08T15:18:44+00:00",
+    "updatedAt": "2022-11-25T05:48:13.665+0000",
+    "createdBy": "SYSTEM",
+    "updatedBy": null,
+    "learningResources": [],
+    "isReusable": true,
+    "entityType": [],
+    "taskSequence": [],
+    "metaInformation": {
+      "supportingDocuments": [""],
+      "primaryAudience": [""]
+    }
+  },
+  {
+    "_id": "5fcf9954546a92494f2e587f",
+    "title": "Vidyagama facilitation project",
+    "externalId": "da9f31a1-dc9d-4665-9af4-d023258dc558",
+    "categories": [],
+    "duration": {
+      "value": "1W",
+      "label": "1 Week"
+    },
+    "difficultyLevel": {
+      "value": "B",
+      "label": "Basic"
+    },
+    "description": "Support HMs and teachers by identifying common good practices and challenges with respect to Vidyagama",
+    "concepts": [],
+    "keywords": [""],
+    "status": "published",
+    "isDeleted": false,
+    "recommendedFor": [],
+    "tasks": ["5fcf9954546a92494f2e587d", "5fcf9954546a92494f2e587e"],
+    "createdAt": "2020-12-08T15:18:44+00:00",
+    "updatedAt": "2020-12-08T15:18:44+00:00",
+    "createdBy": "SYSTEM",
+    "updatedBy": "SYSTEM",
+    "learningResources": [],
+    "isReusable": true,
+    "entityType": [],
+    "taskSequence": ["5fcf9954546a92494f2e587d", "5fcf9954546a92494f2e587e"],
+    "metaInformation": {}
+  }
+]

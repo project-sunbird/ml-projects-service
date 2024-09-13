@@ -7,7 +7,14 @@
 // Dependencies
 const solutionsHelper = require(MODULES_BASE_PATH + "/solutions/helper");
 
-module.exports = class Solutions {
+module.exports = class  Solutions extends Abstract{
+  constructor() {
+    super("solutions");
+  }
+
+  static get name() {
+    return "solutions";
+  }
 
       /**
     * @api {post} /improvement-project/api/v1/solutions/create Create solution
@@ -16,8 +23,6 @@ module.exports = class Solutions {
     * @apiGroup Solutions
     * @apiParamExample {json} Request-Body:
     * {
-    * "createdFor" : ["01305447637218918413"],
-    * "rootOrganisations" : ["01305447637218918413"],
     "programExternalId" : "AMAN_TEST_123-1607937244986",
     "entityType" : "school",
     "externalId" : "IMPROVEMENT-PROJECT-TEST-SOLUTION",

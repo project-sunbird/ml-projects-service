@@ -8,6 +8,7 @@
 // Dependencies
 const csv = require('csvtojson');
 const userProjectsHelper = require(MODULES_BASE_PATH + "/userProjects/helper");
+const projectsHelper = require(MODULES_BASE_PATH + "/userProjects/helper");
 
  /**
     * UserProjects
@@ -34,581 +35,6 @@ module.exports = class UserProjects extends Abstract {
 
     static get name() {
         return "userProjects";
-    }
-
-    /**
-    * @api {get} /improvement-project/api/v1/userProjects/list?updateLastDownloadedAt=:updateLastDownloadedAt
-    * List of projects.
-    * @apiVersion 1.0.0
-    * @apiGroup User Projects
-    * @apiSampleRequest /improvement-project/api/v1/userProjects/list?updateLastDownloadedAt=true
-    * @apiParamExample {json} Response:
-    * {
-    "message": "Project lists fetched successfully",
-    "status": 200,
-    "result": [
-        {
-            "_id": "5f2449eb626a540f40817ef5",
-            "userId": "e97b5582-471c-4649-8401-3cc4249359bb",
-            "status": "pending",
-            "createdAt": "2020-06-29T05:38:43.408Z",
-            "lastDownloadedAt": "2020-06-29T05:38:43.408Z",
-            "syncedAt": "2020-06-29T05:38:43.408Z",
-            "isDeleted": false,
-            "category": [
-                "Community"
-            ],
-            "createdBy": "e97b5582-471c-4649-8401-3cc4249359bb",
-            "startedAt": "2020-06-29T05:38:43.408Z",
-            "completedAt": "2020-06-29T05:38:43.408Z",
-            "tasks": [
-                {
-                    "_id": "5f24404784504944928b10bc",
-                    "isDeleted": false,
-                    "isDeletable": false,
-                    "taskSequence": [],
-                    "children": [
-                        {
-                            "_id": "5f24404784504944928b10bd",
-                            "createdBy": "e97b5582-471c-4649-8401-3cc4249359bb",
-                            "updatedBy": "e97b5582-471c-4649-8401-3cc4249359bb",
-                            "isDeleted": false,
-                            "isDeletable": false,
-                            "taskSequence": [],
-                            "children": [],
-                            "deleted": false,
-                            "type": "single",
-                            "projectTemplateId": "5f2402f570d11462f8e9a591",
-                            "name": "Sub-Task-4",
-                            "externalId": "sub-task-4",
-                            "description": "Sub Task-4-details",
-                            "updatedAt": "2020-07-31T16:25:01.405Z",
-                            "createdAt": "2020-07-31T16:01:11.286Z",
-                            "__v": 0,
-                            "parentId": "5f24404784504944928b10bc"
-                        }
-                    ],
-                    "deleted": false,
-                    "type": "multiple",
-                    "projectTemplateId": "5f2402f570d11462f8e9a591",
-                    "name": "Task-3",
-                    "externalId": "Task-3",
-                    "description": "Task-3details",
-                    "updatedAt": "2020-07-31T16:25:01.430Z",
-                    "createdAt": "2020-07-31T16:01:11.280Z"
-                }
-            ],
-            "entityInformation": {
-                "externalId": "1959076",
-                "name": "Nigam Pratibha Vidyalaya (Girls), Jauna Pur, New Delhi"
-            },
-            "solutionInformation": {
-                "externalId": "EF-DCPCR-2018-001",
-                "name": "DCPCR Assessment Framework 2018",
-                "description": "DCPCR Assessment Framework 2018",
-                "_id": "5b98fa069f664f7e1ae7498c"
-            },
-            "entityTypeId": "5ce23d633c330302e720e65f",
-            "programInformation": {
-                "externalId": "PROGID01",
-                "name": "DCPCR School Development Index 2018-19",
-                "description": "DCPCR School Development Index 2018-19"
-            },
-            "title": "Improving Library",
-            "goal": "Improving Library",
-            "duration": "1 weeak"
-        }
-    ]
-    } 
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-      /**
-      * List of project
-      * @method
-      * @name list
-      * @param {Object} req - request data.
-      * @returns {JSON} returns a list of project.
-     */
-
-    async list(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let projects = await userProjectsHelper.list(
-                    req.userDetails.userInformation.userId,
-                    req.query.updateLastDownloadedAt ? req.query.updateLastDownloadedAt : false
-                );
-
-                projects.result = projects.data;
-
-                return resolve(projects);
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
-    }
-
-      /**
-    * @api {get} /improvement-project/api/v1/userProjects/metaForm 
-    * Projects metaForm.
-    * @apiVersion 1.0.0
-    * @apiGroup User Projects
-    * @apiSampleRequest /improvement-project/api/v1/userProjects/metaForm
-    * @apiParamExample {json} Response:
-    * {
-    * "message": "Successfully fetched projects metaform",
-    * "status": 200,
-    * "result": [
-        {
-            "field": "title",
-            "label": "Title",
-            "value": "",
-            "visible": true,
-            "editable": true,
-            "input": "text",
-            "validation": {
-                "required": true
-            }
-        },
-        {
-            "field": "description",
-            "label": "Description",
-            "value": "",
-            "visible": true,
-            "editable": true,
-            "input": "textarea",
-            "validation": {
-                "required": true
-            }
-        },
-        {
-            "field": "categories",
-            "label": "Categories",
-            "value": "",
-            "visible": true,
-            "editable": true,
-            "input": "select",
-            "options": [
-                {
-                    "_id": "5fbb2bcc3e7f4958654e351e",
-                    "label": "Teachers",
-                    "value": "teachers"
-                },
-                {
-                    "_id": "5fbb2bcc3e7f4958654e351f",
-                    "label": "Students",
-                    "value": "students"
-                },
-                {
-                    "_id": "5fbb2bcc3e7f4958654e3520",
-                    "label": "Infrastructure",
-                    "value": "infrastructure"
-                },
-                {
-                    "_id": "5fbb2bcc3e7f4958654e3521",
-                    "label": "Community",
-                    "value": "community"
-                },
-                {
-                    "_id": "5fbb2bcc3e7f4958654e3522",
-                    "label": "Education Leader",
-                    "value": "educationLeader"
-                },
-                {
-                    "_id": "",
-                    "label": "Others",
-                    "value": "others"
-                }
-            ],
-            "validation": {
-                "required": false
-            }
-        }]}
-        * @apiUse successBody
-        * @apiUse errorBody 
-    */
-
-      /**
-      * Projects form
-      * @method
-      * @name metaForm
-      * @param {Object} req - request data.
-      * @returns {JSON} Projects form.
-     */
-
-    async metaForm(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                const formsData = 
-                await userProjectsHelper.metaForm(req.userDetails.userToken);
-
-                formsData.result = formsData.data;
-                return resolve(formsData);
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
-    }
-
-      /**
-    * @api {get} /improvement-project/api/v1/userProjects/tasksMetaForm 
-    * Projects task meta form.
-    * @apiVersion 1.0.0
-    * @apiGroup User Projects
-    * @apiSampleRequest /improvement-project/api/v1/userProjects/tasksMetaForm
-    * @apiParamExample {json} Response:
-    * {
-    "message": "Successfully fetched projects tasks metaform",
-    "status": 200,
-    "result": [
-        {
-            "field": "name",
-            "label": "Name",
-            "value": "",
-            "visible": true,
-            "editable": true,
-            "input": "text",
-            "validation": {
-                "required": true
-            }
-        },
-        {
-            "field": "description",
-            "label": "Description",
-            "value": "",
-            "visible": true,
-            "editable": true,
-            "input": "textarea",
-            "validation": {
-                "required": true
-            }
-        }
-    ]
-    }
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-      /**
-      * Projects tasks meta form.
-      * @method
-      * @name tasksMetaForm
-      * @param {Object} req - request data.
-      * @returns {JSON} Projects tasks meta form.
-     */
-
-    async tasksMetaForm() {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let formsData = await userProjectsHelper.tasksMetaForm();
-
-                formsData.result = formsData.data;
-                return resolve(formsData);
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
-    }
-
-     /**
-    * @api {post} /improvement-project/api/v1/userProjects/bulkCreate 
-    * Bulk create user projects.
-    * @apiVersion 1.0.0
-    * @apiGroup User Projects
-    * @apiParam {File} projects Mandatory project file of type CSV.
-    * @apiSampleRequest /improvement-project/api/v1/userProjects/bulkCreate
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    /**
-      * Bulk create user projects.
-      * @method
-      * @name bulkCreate
-      * @param {Object} req - request data.
-      * @returns {CSV} Assigned projects to user.
-     */
-
-    async bulkCreate(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                if ( !req.files || !req.files.projects ) {
-                    return resolve(
-                      {
-                        status : HTTP_STATUS_CODE["bad_request"].status, 
-                        message : CONSTANTS.apiResponses.PROJECTS_CSV_REQUIRED
-                      }
-                    )
-                }
-
-                const projectsData = await csv().fromString(
-                    req.files.projects.data.toString()
-                );
-
-                const projects = await userProjectsHelper.bulkCreate(
-                    projectsData,
-                    req.userDetails.userToken
-                );
-
-                return resolve(projects);
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
-    }
-
-     /**
-    * @api {post} /improvement-project/api/v1/userProjects/importFromLibrary/:projectTemplateId 
-    * Import project from library.
-    * @apiVersion 1.0.0
-    * @apiGroup User Projects
-    * @apiSampleRequest /improvement-project/api/v1/userProjects/importFromLibrary/5f5b32cef16777642d51aaf0
-    * @apiParamExample {json} Request:
-    * {
-    * "programId" : "",
-    * "programName" : "My Program",
-    * "rating" : 2
-    * }
-    * @apiParamExample {json} Response:
-    * {
-    "message": "Successfully fetched projects",
-    "status": 200,
-    "result": {
-        "userId": "01c04166-a65e-4e92-a87b-a9e4194e771d",
-        "createdFor": [],
-        "isDeleted": false,
-        "categories": [
-            {
-                "_id": "5f102331665bee6a740714eb",
-                "externalId": "community",
-                "name": "Community"
-            }
-        ],
-        "createdBy": "01c04166-a65e-4e92-a87b-a9e4194e771d",
-        "tasks": [
-            {
-                "_id": "61d6690d-82cb-4db2-8191-8dd945c5e742",
-                "isDeleted": false,
-                "isDeletable": false,
-                "taskSequence": [],
-                "children": [
-                    {
-                        "_id": "b5068cef-eefc-4f43-8a29-ab9c2268f451",
-                        "isDeleted": false,
-                        "isDeletable": false,
-                        "taskSequence": [],
-                        "children": [],
-                        "visibleIf": [
-                            {
-                                "operator": "===",
-                                "_id": "5f72f9998925ec7c60f79a91",
-                                "value": "started"
-                            }
-                        ],
-                        "deleted": false,
-                        "type": "single",
-                        "projectTemplateId": "5f5b32cef16777642d51aaf0",
-                        "name": "Sub task 1",
-                        "externalId": "Sub-task-1",
-                        "description": "Sub-Task-1-Description",
-                        "updatedAt": "2020-09-29T09:08:41.681Z",
-                        "createdAt": "2020-09-29T09:08:41.675Z",
-                        "__v": 0,
-                        "status": "notStarted"
-                    },
-                    {
-                        "_id": "988ef20f-267f-4bed-9a38-9d7dc6a320e9",
-                        "isDeleted": false,
-                        "isDeletable": false,
-                        "taskSequence": [],
-                        "children": [],
-                        "visibleIf": [
-                            {
-                                "operator": "===",
-                                "_id": "5f72f9998925ec7c60f79a91",
-                                "value": "started"
-                            }
-                        ],
-                        "deleted": false,
-                        "type": "single",
-                        "projectTemplateId": "5f5b32cef16777642d51aaf0",
-                        "name": "Sub task 2",
-                        "externalId": "Sub-task-2",
-                        "description": "Sub-Task-2-Description",
-                        "updatedAt": "2020-09-29T09:08:41.693Z",
-                        "createdAt": "2020-09-29T09:08:41.689Z",
-                        "__v": 0,
-                        "status": "notStarted"
-                    }
-                ],
-                "visibleIf": [],
-                "deleted": false,
-                "type": "multiple",
-                "projectTemplateId": "5f5b32cef16777642d51aaf0",
-                "name": "Task 1",
-                "externalId": "task-1",
-                "description": "Task-1 Description",
-                "updatedAt": "2020-09-29T09:08:41.691Z",
-                "createdAt": "2020-09-29T09:08:41.612Z",
-                "__v": 0,
-                "status": "notStarted"
-            },
-            {
-                "_id": "289d9558-b98f-41cf-81d3-92486f114a49",
-                "isDeleted": false,
-                "isDeletable": false,
-                "taskSequence": [],
-                "children": [],
-                "visibleIf": [],
-                "deleted": false,
-                "type": "single",
-                "projectTemplateId": "5f5b32cef16777642d51aaf0",
-                "name": "Task 12",
-                "externalId": "Task-12",
-                "description": "Task-1 Description",
-                "updatedAt": "2020-09-29T09:08:41.667Z",
-                "createdAt": "2020-09-29T09:08:41.667Z",
-                "__v": 0,
-                "status": "notStarted"
-            }
-        ],
-        "updatedBy": "01c04166-a65e-4e92-a87b-a9e4194e771d",
-        "rootOrganisations": [],
-        "_id": "5f731d68920a8c3e092e6e4c",
-        "deleted": false,
-        "name": "Test-2",
-        "description": "improving school library",
-        "status": "notStarted",
-        "updatedAt": "2020-09-29T11:41:28.656Z",
-        "createdAt": "2020-09-11T08:18:22.077Z",
-        "__v": 0,
-        "solutionInformation": {
-            "externalId": "01c04166-a65e-4e92-a87b-a9e4194e771d-1601379673400"
-        },
-        "programInformation": {
-            "externalId": "My Program-1601379673400",
-            "name": "My Program"
-        },
-        "taskReport": {},
-        "entityInformation": {},
-        "rationale": "sample",
-        "primaryAudience": [
-            "teachers",
-            "head master"
-        ]
-    }}
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    /**
-      * Import project from library.
-      * @method
-      * @name importFromLibrary
-      * @param {Object} req - request data.
-      * @param {String} req.params._id - project Template Id.
-      * @returns {JSON} import project from library.
-     */
-
-    async importFromLibrary(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                const createdProject = await userProjectsHelper.importFromLibrary(
-                    req.params._id,
-                    req.body,
-                    req.userDetails.userToken,
-                    req.userDetails.userInformation.userId
-                );
-
-                return resolve({
-                    message: createdProject.message,
-                    result: createdProject.data
-                });
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
-    }
-
-       /**
-    * @api {get} /improvement-project/api/v1/userProjects/create
-    * Create project.
-    * @apiVersion 1.0.0
-    * @apiGroup User Projects
-    * @apiSampleRequest /improvement-project/api/v1/userProjects/create
-    * @apiParamExample {json} Response:
-    * {
-    "message": "Created user project successfully",
-    "status": 200,
-    "result": {
-        "_id": "5f97d2f6bf3a3b1c0116c80a",
-        "lastDownloadedAt": "2020-10-27T07:57:41.003Z"
-    }}
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    /**
-      * Create project.
-      * @method
-      * @name create
-      * @param {Object} req - request data.
-      * @param {String} req.params._id - Project id.
-      * @returns {JSON} Create project.
-     */
-
-    async create(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let createdProject = await userProjectsHelper.create(
-                    req.userDetails.userInformation.userId,
-                    req.userDetails.userToken
-                );
-
-                createdProject.result = createdProject.data;
-
-                return resolve(createdProject);
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
     }
 
      /**
@@ -701,7 +127,6 @@ module.exports = class UserProjects extends Abstract {
     async sync(req) {
         return new Promise(async (resolve, reject) => {
             try {
-
                 let createdProject = await userProjectsHelper.sync(
                     req.params._id,
                     req.query.lastDownloadedAt,
@@ -738,7 +163,7 @@ module.exports = class UserProjects extends Abstract {
     * @apiSampleRequest /improvement-project/api/v1/userProjects/details/5f731631e8d7cd3b88ac0659?programId=5f4e538bdf6dd17bab708173&solutionId=5f8688e7d7f86f040b77f460&templateId=IDEAIMP4
     * @apiParamExample {json} Request:
     {
-        "role" : "HM",
+        "role" : "HM,DEO",
         "state" : "236f5cff-c9af-4366-b0b6-253a1789766a",
         "district" : "1dcbc362-ec4c-4559-9081-e0c2864c2931",
         "school" : "c5726207-4f9f-4f45-91f1-3e9e8e84d824"
@@ -933,11 +358,18 @@ module.exports = class UserProjects extends Abstract {
     }
 
      /**
-    * @api {get} /improvement-project/api/v1/userProjects/solutionDetails/:projectId?taskId=:taskId
+    * @api {post} /improvement-project/api/v1/userProjects/solutionDetails/:projectId?taskId=:taskId
     * User project solution details
     * @apiVersion 1.0.0
     * @apiGroup User Projects
     * @apiSampleRequest /improvement-project/api/v1/userProjects/solutionDetails/5fba54dc5bf46b25a926bee5?taskId=347400e7-8a62-4dad-bc24-af7c5bd70ad1
+    * @apiParamExample {json} Request:
+    {
+        "role" : "HM,DEO",
+        "state" : "236f5cff-c9af-4366-b0b6-253a1789766a",
+        "district" : "1dcbc362-ec4c-4559-9081-e0c2864c2931",
+        "school" : "c5726207-4f9f-4f45-91f1-3e9e8e84d824"
+    }
     * @apiParamExample {json} Response:
     * {
     "message" : "Solutions details fetched successfully",
@@ -984,142 +416,13 @@ module.exports = class UserProjects extends Abstract {
                 let solutionDetails = await userProjectsHelper.solutionDetails(
                     req.userDetails.userToken,
                     req.params._id,
-                    req.query.taskId
+                    req.query.taskId,
+                    req.body
                 );
 
                 solutionDetails.result = solutionDetails.data;
                 
                 return resolve(solutionDetails);
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
-    }
-
-
-      /**
-    * @api {post} /improvement-project/api/v1/userProjects/bulkCreateByUserRoleAndEntity 
-    * Bulk create user projects by entity and role.
-    * @apiVersion 1.0.0
-    * @apiGroup User Projects
-    * @apiSampleRequest /improvement-project/api/v1/userProjects/bulkCreateByUserRoleAndEntity
-    * @apiParamExample {json} Request:
-    * {
-    *  "templateId": "5f2449eb626a540f40817ef5",
-    *  "entityId": "5f2449eb626a540f40817ef5",
-    *  "role": "CRP",
-    *  "programExternalId": "TAF-pgm",
-    *  "solutionExternalId": "TAF-solution"
-     }
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    /**
-      * Bulk create user projects by entity and role.
-      * @method
-      * @name bulkCreateByUserRoleAndEntity
-      * @param {Object} req - request data.
-      * @param {String} req.body.entityId - entityId 
-      * @param {String} req.body.role - role 
-      * @returns {CSV} Assigned projects to user.
-     */
-
-    async bulkCreateByUserRoleAndEntity(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let projects = await userProjectsHelper.bulkCreateByUserRoleAndEntity(
-                    req.body,
-                    req.userDetails.userToken
-                );
-
-                return resolve(projects);
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
-    }
-
-      /**
-    * @api {post} /improvement-project/api/v1/userProjects/getProject?page=:page&limit=:limit&search=:search&filter=:assignedToMe
-    * List of User projects and auto targeted.
-    * @apiVersion 1.0.0
-    * @apiGroup User Projects
-    * @apiSampleRequest /improvement-project/api/v1/userProjects/getProject
-    * @apiParamExample {json} Request:
-    * {
-    *   "role" : "HM",
-   		"state" : "236f5cff-c9af-4366-b0b6-253a1789766a",
-        "district" : "1dcbc362-ec4c-4559-9081-e0c2864c2931",
-        "school" : "c5726207-4f9f-4f45-91f1-3e9e8e84d824"
-    }
-    * @apiParamExample {json} Response:
-    {
-    "message": " Targeted projects fetched successfully",
-    "status": 200,
-    "result": {
-        "description": "Manage and track your school Improvement easily by creating tasks and planning timelines.",
-        "data": [
-            {
-                "_id": "5fd6f3b6062df5269e6532f0",
-                "description": "h bucks ",
-                "programId": "5fd6f3b7ab86c4262564b83f",
-                "solutionId": "5fd6f3b7ab86c4262564b840",
-                "name": "gjk"
-            },
-            {
-                "_id": "",
-                "externalId": "TAMIL-NADU-AUTO-TARGETING-IMPROVEMENT-PROJECT",
-                "programId": "5ffbf8909259097d48017bbf",
-                "programName": "Tamil nadu AUTO TARGETING program",
-                "description": "tamil nadu improvement project testing",
-                "name": "tamil nadu improvement project testing",
-                "solutionId": "5ffbf9629259097d48017bc0"
-            }
-        ],
-        "count": 2
-    }
-    }
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
-
-    /**
-      * List of user projects and targetted ones.
-      * @method
-      * @name getProject
-      * @param {Object} req - request data.
-      * @returns {JSON} List of user project with targetted ones.
-     */
-    
-    async getProject(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                let projects = await userProjectsHelper.getProject(
-                    req.body,
-                    req.userDetails.userInformation.userId,
-                    req.userDetails.userToken,
-                    req.pageSize,
-                    req.pageNo,
-                    req.searchText,
-                    req.query.filter
-                );
-
-                projects.result = projects.data;
-                
-                return resolve(projects);
 
             } catch (error) {
                 return reject({
@@ -1189,7 +492,7 @@ module.exports = class UserProjects extends Abstract {
         "_id": "289d9558-b98f-41cf-81d3-92486f114a51"
     },
     "profileInformation" : {
-        "role" : "HM",
+        "role" : "HM,DEO",
    		"state" : "236f5cff-c9af-4366-b0b6-253a1789766a",
         "district" : "1dcbc362-ec4c-4559-9081-e0c2864c2931",
         "school" : "c5726207-4f9f-4f45-91f1-3e9e8e84d824"
@@ -1341,9 +644,9 @@ module.exports = class UserProjects extends Abstract {
                 let report = await userProjectsHelper.share(
                     req.params._id,
                     taskIds,
-                    req.userDetails.userToken
+                    req.userDetails.userToken,
+                    req.headers['x-app-ver']
                 );
-
                 return resolve({
                     message: report.message,
                     result: report.data
@@ -1421,4 +724,435 @@ module.exports = class UserProjects extends Abstract {
             }
         })
     }
+
+    /**
+   * @api {post} /improvement-project/api/v1/userProjects/list
+   * Lists of projects.
+   * @apiVersion 0.0.1
+   * @apiName Lists of projects.
+   * @apiGroup Entity Types
+   * @apiHeader {String} X-authenticated-user-token Authenticity token
+   * @apiSampleRequest /improvement-project/api/v1/userProjects/list
+   * @apiUse successBody
+   * @apiUse errorBody
+   * @apiParamExample {json} Request-Body:
+   * {
+    "query" : {
+        "code" : "HM"
+    },
+    "projection" : ["_id","code"]
+    }
+   * @apiParamExample {json} Response: 
+   * {
+   * "message": "Project fetched successfully",
+   * "status": 200,
+   * "result" : [
+   *  {
+   * "_id": "5d15a959e9185967a6d5e8a6",
+   *  "title": "Come See Our School!- Parent Mela"
+   }]
+  }
+   */
+
+  /**
+   * Lists of projects.
+   * @method
+   * @name list
+   * @returns {JSON} List projects.
+  */
+
+    async list(req) {
+      return new Promise(async (resolve, reject) => {
+        try {
+
+          let projects = await userProjectsHelper.list(req.body);
+          return resolve(projects);
+
+        } catch (error) {
+          return reject({
+            status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
+            message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
+            errorObject: error
+          });
+        }
+      });
+    }
+
+    /**
+    * @api {post} /improvement-project/api/v1/userProjects/importFromLibrary/:projectTemplateId&isATargetedSolution=false
+    * Import project from library.
+    * @apiVersion 1.0.0
+    * @apiGroup User Projects
+    * @apiSampleRequest /improvement-project/api/v1/userProjects/importFromLibrary/5f5b32cef16777642d51aaf0
+    * @apiParamExample {json} Request:
+    * {
+    * "programId" : "",
+    * "programName" : "My Program",
+    * "rating" : 2
+    * }
+    * @apiParamExample {json} Response:
+    * {
+    "message": "Successfully fetched projects",
+    "status": 200,
+    "result": {
+        "userId": "01c04166-a65e-4e92-a87b-a9e4194e771d",
+        "isDeleted": false,
+        "categories": [
+            {
+                "_id": "5f102331665bee6a740714eb",
+                "externalId": "community",
+                "name": "Community"
+            }
+        ],
+        "createdBy": "01c04166-a65e-4e92-a87b-a9e4194e771d",
+        "tasks": [
+            {
+                "_id": "61d6690d-82cb-4db2-8191-8dd945c5e742",
+                "isDeleted": false,
+                "isDeletable": false,
+                "taskSequence": [],
+                "children": [
+                    {
+                        "_id": "b5068cef-eefc-4f43-8a29-ab9c2268f451",
+                        "isDeleted": false,
+                        "isDeletable": false,
+                        "taskSequence": [],
+                        "children": [],
+                        "visibleIf": [
+                            {
+                                "operator": "===",
+                                "_id": "5f72f9998925ec7c60f79a91",
+                                "value": "started"
+                            }
+                        ],
+                        "deleted": false,
+                        "type": "single",
+                        "projectTemplateId": "5f5b32cef16777642d51aaf0",
+                        "name": "Sub task 1",
+                        "externalId": "Sub-task-1",
+                        "description": "Sub-Task-1-Description",
+                        "updatedAt": "2020-09-29T09:08:41.681Z",
+                        "createdAt": "2020-09-29T09:08:41.675Z",
+                        "__v": 0,
+                        "status": "notStarted"
+                    },
+                    {
+                        "_id": "988ef20f-267f-4bed-9a38-9d7dc6a320e9",
+                        "isDeleted": false,
+                        "isDeletable": false,
+                        "taskSequence": [],
+                        "children": [],
+                        "visibleIf": [
+                            {
+                                "operator": "===",
+                                "_id": "5f72f9998925ec7c60f79a91",
+                                "value": "started"
+                            }
+                        ],
+                        "deleted": false,
+                        "type": "single",
+                        "projectTemplateId": "5f5b32cef16777642d51aaf0",
+                        "name": "Sub task 2",
+                        "externalId": "Sub-task-2",
+                        "description": "Sub-Task-2-Description",
+                        "updatedAt": "2020-09-29T09:08:41.693Z",
+                        "createdAt": "2020-09-29T09:08:41.689Z",
+                        "__v": 0,
+                        "status": "notStarted"
+                    }
+                ],
+                "visibleIf": [],
+                "deleted": false,
+                "type": "multiple",
+                "projectTemplateId": "5f5b32cef16777642d51aaf0",
+                "name": "Task 1",
+                "externalId": "task-1",
+                "description": "Task-1 Description",
+                "updatedAt": "2020-09-29T09:08:41.691Z",
+                "createdAt": "2020-09-29T09:08:41.612Z",
+                "__v": 0,
+                "status": "notStarted"
+            },
+            {
+                "_id": "289d9558-b98f-41cf-81d3-92486f114a49",
+                "isDeleted": false,
+                "isDeletable": false,
+                "taskSequence": [],
+                "children": [],
+                "visibleIf": [],
+                "deleted": false,
+                "type": "single",
+                "projectTemplateId": "5f5b32cef16777642d51aaf0",
+                "name": "Task 12",
+                "externalId": "Task-12",
+                "description": "Task-1 Description",
+                "updatedAt": "2020-09-29T09:08:41.667Z",
+                "createdAt": "2020-09-29T09:08:41.667Z",
+                "__v": 0,
+                "status": "notStarted"
+            }
+        ],
+        "updatedBy": "01c04166-a65e-4e92-a87b-a9e4194e771d",
+        "_id": "5f731d68920a8c3e092e6e4c",
+        "deleted": false,
+        "name": "Test-2",
+        "description": "improving school library",
+        "status": "notStarted",
+        "updatedAt": "2020-09-29T11:41:28.656Z",
+        "createdAt": "2020-09-11T08:18:22.077Z",
+        "__v": 0,
+        "solutionInformation": {
+            "externalId": "01c04166-a65e-4e92-a87b-a9e4194e771d-1601379673400"
+        },
+        "programInformation": {
+            "externalId": "My Program-1601379673400",
+            "name": "My Program"
+        },
+        "taskReport": {},
+        "entityInformation": {},
+        "rationale": "sample",
+        "primaryAudience": [
+            "teachers",
+            "head master"
+        ]
+    }}
+    * @apiUse successBody
+    * @apiUse errorBody
+    */
+
+    /**
+      * Import project from library.
+      * @method
+      * @name importFromLibrary
+      * @param {Object} req - request data.
+      * @param {String} req.params._id - project Template Id.
+      * @returns {JSON} import project from library.
+     */
+
+    async importFromLibrary(req) {
+        return new Promise(async (resolve, reject) => {
+            try {
+  
+                const createdProject = await userProjectsHelper.importFromLibrary(
+                    req.params._id,
+                    req.body,
+                    req.userDetails.userToken,
+                    req.userDetails.userInformation.userId,
+                    req.query.isATargetedSolution ? req.query.isATargetedSolution : ""
+                );
+
+                return resolve({
+                    status: createdProject.status,
+                    message: createdProject.message,
+                    result: createdProject.data
+                });
+
+            } catch (error) {
+                return reject({
+                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
+                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
+                    errorObject: error
+                });
+            }
+        })
+    }
+
+    /**
+    * @api {post} /improvement-project/api/v1/userProjects/certificateCallback
+    * Project certificate callback
+    * @apiVersion 1.0.0
+    * @apiGroup User Projects
+    * @apiSampleRequest /improvement-project/api/v1/userProjects/certificateCallback
+    * @apiParamExample {json} Request
+    *   {
+            "event": "sunbird-rc-create",
+            "timestamp": 1660145509358,
+            "data": {
+                "userId": "anonymous",
+                "entityType": "ProjectCertificate",
+                "osid": "ce2244a4-1a17-49a0-a3f9-c151161e70bl",
+                "transactionId": "1-3a4892d8-2221-4e96-9434-f4b37886126b",
+                "status": "SUCCESSFUL",
+                "message": ""
+            },
+            "webhookUrl": "http://ml-project-service:3000/v1/userProjects/certificateCallback"
+        }
+    * @apiParamExample {json} Response:
+    /**{
+            "message": "Successfully generated project certificate",
+            "status": 200,
+            "result": {
+                "_id": "63446059eeffea2b819f036e"
+            }
+        }
+    /**
+
+    /**
+     * Project certificate callback.
+     * @method
+     * @name certificateCallback
+     * @param {Object} req - request data.
+     * @returns {JSON} certificate details.
+    */
+
+    async certificateCallback(req) {
+    return new Promise(async (resolve, reject) => {
+            try {
+                //console request body to check if callback is coming or not and to check any structural change is there or not 
+                console.log("-------------callback request body------------",JSON.stringify(req.body))
+                let certificateDetails = await userProjectsHelper.certificateCallback( req.body.data.transactionId, req.body.data.osid );
+                    return resolve({
+                        message: certificateDetails.message,
+                        result: certificateDetails.data
+                    });
+            } catch (error) {
+                return reject({
+                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
+                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
+                    errorObject: error
+                });
+            }
+        })
+    }
+
+    /**
+    * @api {get} /improvement-project/api/v1/userProjects/certificates
+    * List of user project with certificate
+    * @apiVersion 1.0.0
+    * @apiGroup User Projects
+    * @apiSampleRequest /improvement-project/api/v1/userProjects/certificates
+    * @apiParamExample {json} Response:
+    *   {
+            "message": "User project fetched successfully",
+            "status": 200,
+            "result": {
+                "data": [{
+                        "_id": "60793b80bd49095a19ddeae1",
+                        "title": "Project with learning resources",
+                        "certificate": {
+                            "osid": "1-21c8ecab-7b8d-40f1-9961-cae7fcb6a5f9",
+                            "status": "active",
+                            "templateId": "600acc42c7de076e6f995147",
+                            "templateUrl": "certificateTemplates/6343bd978f9d8980b7841e85/ba9aa220-ff1b-4717-b6ea-ace55f04fc16_2022-9-10-1665383945769.svg",
+                            "issuedOn": "2020-12-03 13:22:31.988Z"
+                        },
+                        "status": "submitted"
+                    },
+                    {
+                        "_id": "6011136a2d25b926974d9ec9",
+                        "title": "Keep Our Schools Alive! (Petition)",
+                        "status": "submitted",
+                        "certificate": {
+                            "eligible": false,
+                            "templateId": "600acc42c7de076e6f995147",
+                            "message": "Not submitted the project the project within program end date"
+                        }
+                    }
+                ],
+                "count": 2,
+                "certificateCount": 1
+            }
+        }
+    /**
+
+    /**
+     * List user project details with certificate
+     * @method
+     * @name certificates
+     * @returns {JSON} User project detaills with certificate
+    */
+
+    async certificates(req) {
+        return new Promise(async (resolve, reject) => {
+                try {
+                    // fetch projects data of user, whish has certificate on completion
+                    let projectDetails = await userProjectsHelper.certificates( req.userDetails.userInformation.userId );
+                    return resolve({
+                        message: projectDetails.message,
+                        result: projectDetails.data
+                    });
+                    
+                } catch (error) {
+                    return reject({
+                        status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
+                        message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
+                        errorObject: error
+                    });
+                }
+        })
+    }
+
+    /**
+    * @api {post} /improvement-project/api/v1/userProjects/certificateReIssue
+    * ReIssue project certificate (admin api)
+    * @apiVersion 1.0.0
+    * @apiGroup User Projects
+    * @apiSampleRequest /improvement-project/api/v1/userProjects/certificateReIssue
+    * @apiParamExample {json} Response:
+    /**{
+            "message": "Successfully generated project certificate",
+            "status": 200,
+            "result": {
+                "_id": "63446059eeffea2b819f036e"
+            }
+        }
+    /**
+     * ReIssue project certificate
+     * @method
+     * @name certificateReIssue
+     * @returns {JSON} Reissued details
+    */
+
+     async certificateReIssue(req) {
+        return new Promise(async (resolve, reject) => {
+                try {
+                    // ReIssue certificate of given project : projectId is passed as param 
+                    // This console has to be removed- adding to check the Issuer kid value in case rancher doesn't display console while deployment
+                    console.log("+++++CERTIFICATE_ISSUER_KID+++++ : ",CERTIFICATE_ISSUER_KID)
+                    let projectDetails = await userProjectsHelper.certificateReIssue(
+                        req.params._id,
+                    );
+                    return resolve({
+                        message: projectDetails.message,
+                        result: projectDetails.data
+                    });
+                    
+                } catch (error) {
+                    return reject({
+                        status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
+                        message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
+                        errorObject: error
+                    });
+                }
+        })
+    }
+    async overview(req) {
+        return new Promise(async (resolve, reject) => {
+            try {
+
+                let stats = req.query.stats;
+                if (stats !== undefined) {
+                    stats = UTILS.convertStringToBoolean(stats);
+                }
+
+                let listOfCreatedProjects = await userProjectsHelper.userProjectOverview({
+                    userId:req.userDetails.userInformation.userId
+                },['title','description','_id','userId','isAPrivateProgram','createdBy','status','createdAt','deleted'],stats)
+                
+                return resolve({
+                    message: 'success',
+                    result: listOfCreatedProjects
+                });
+                
+            } catch (error) {
+                return reject({
+                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
+                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
+                    errorObject: error
+                });
+            }
+    }) 
+    }
+    
+
 };

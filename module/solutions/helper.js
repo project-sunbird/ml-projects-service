@@ -7,7 +7,8 @@
 
 // Dependencies
 
-const kendraService = require(GENERICS_FILES_PATH + "/services/kendra");
+const coreService = require(GENERICS_FILES_PATH + "/services/core");
+const solutionsQueries = require(DB_QUERY_BASE_PATH + "/solutions");
 
 /**
     * SolutionsHelper
@@ -36,7 +37,7 @@ module.exports = class SolutionsHelper {
             requestedData.isReusable = false;
             
             let solutionCreated = 
-            await kendraService.createSolution(requestedData,token);
+            await coreService.createSolution(requestedData,token);
 
             if( !solutionCreated.success ) {
               throw {
@@ -55,6 +56,135 @@ module.exports = class SolutionsHelper {
               success : false,
               message : error.message
             });
+        }
+    });
+  }
+
+  /**
+  * Update User District and Organisation In Solutions For Reporting.
+  * @method
+  * @name _addReportInformationInSolution 
+  * @param {String} solutionId - solution id.
+  * @param {Object} userProfile - user profile details
+  * @returns {Object} Solution information.
+*/
+
+  static addReportInformationInSolution(solutionId,userProfile) {
+    return new Promise(async (resolve, reject) => {
+        try {
+
+            //check solution & userProfile is exist
+            if ( 
+                solutionId && userProfile && 
+                userProfile["userLocations"] && 
+                userProfile["organisations"]
+            ) {
+                let district = [];
+                let organisation = [];
+
+                //get the districts from the userProfile
+                for (const location of userProfile["userLocations"]) {
+                    if ( location.type == CONSTANTS.common.DISTRICT ) {
+                        let distData = {}
+                        distData["locationId"] = location.id;
+                        distData["name"] = location.name;
+                        district.push(distData);
+                    }
+                }
+
+                //get the organisations from the userProfile
+                for (const org of userProfile["organisations"]) {
+                    if ( !org.isSchool ) {
+                        let orgData = {};
+                        orgData.orgName = org.orgName;
+                        orgData.organisationId = org.organisationId;
+                        organisation.push(orgData);
+                    }
+                    
+                }
+
+                let updateQuery = {};
+                updateQuery["$addToSet"] = {};
+  
+                if ( organisation.length > 0 ) {
+                    updateQuery["$addToSet"]["reportInformation.organisations"] = { $each : organisation};
+                }
+
+                if ( district.length > 0 ) {
+                    updateQuery["$addToSet"]["reportInformation.districts"] = { $each : district};
+                }
+
+                //add user district and organisation in solution
+                if ( updateQuery["$addToSet"] && Object.keys(updateQuery["$addToSet"].length > 0)) {
+                    await solutionsQueries.updateSolutionDocument
+                    (
+                        { _id : solutionId },
+                        updateQuery
+                    )
+                }
+                
+            } else {
+                throw new Error(CONSTANTS.apiResponses.SOLUTION_ID_AND_USERPROFILE_REQUIRED);
+            }
+            
+            return resolve({
+                success: true,
+                message: CONSTANTS.apiResponses.UPDATED_DOCUMENT_SUCCESSFULLY
+            });
+            
+        } catch (error) {
+            return resolve({
+              success : false,
+              message : error.message,
+              data: []
+            });
+        }
+    });
+  }
+  /**
+   * Solution Data
+   * @method
+   * @name solutionDocuments
+   * @param {Array} [filterQuery = "all"] - solution ids.
+   * @param {Array} [fieldsArray = "all"] - projected fields.
+   * @param {Array} [skipFields = "none"] - field not to include
+   * @returns {Array} List of solutions.
+   */
+
+  static solutionDocuments(
+    filterQuery = "all", 
+    fieldsArray = "all",
+    skipFields = "none"
+  ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+    
+            let queryObject = (filterQuery != "all") ? filterQuery : {};
+    
+            let projection = {}
+    
+            if (fieldsArray != "all") {
+                fieldsArray.forEach(field => {
+                    projection[field] = 1;
+                });
+            }
+
+            if( skipFields !== "none" ) {
+              skipFields.forEach(field=>{
+                projection[field] = 0;
+              })
+            }
+    
+            let solutionDocuments = 
+            await database.models.solutions.find(
+              queryObject, 
+              projection
+            ).lean();
+            
+            return resolve(solutionDocuments);
+            
+        } catch (error) {
+            return reject(error);
         }
     });
   }

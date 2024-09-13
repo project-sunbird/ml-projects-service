@@ -78,6 +78,7 @@ module.exports = class Reports {
                     req.query.reportType,
                     req.query.programId ? req.query.programId : "",
                     req.query.requestPdf ? (req.query.requestPdf).toLowerCase() =="true" ? true :false : false,
+                    req.headers['x-app-ver']
                 );
                 
                 return resolve({
@@ -95,73 +96,18 @@ module.exports = class Reports {
         })
     }
 
-    /**
-    * @api {get} /improvement-project/api/v1/reports/types
-    * Get report types.
-    * @apiVersion 1.0.0
-    * @apiGroup Reports
-    * @apiSampleRequest /improvement-project/api/v1/reports/types
-    * @apiParamExample {json} Response:
-    * {
-        "message": "Report types fetched successfully.",
-        "status": 200,
-        "result": [
-            {
-    "message": "Report types fetched successfully.",
-    "status": 200,
-    "result": [
-        {
-            "label": "Weekly",
-            "value": 0
-        },
-        {
-            "label": "Monthly",
-            "value": 1
-        },
-        {
-            "label": "Quarterly",
-            "value": 3
-        }
-  
-        ]
-    * }
-    * @apiUse successBody
-    * @apiUse errorBody
-    */
+    
 
     /**
-      * Get entity types
-      * @method
-      * @name types
-      * @returns {JSON} enity report details.
-    */
-    async types(req) {
-        return new Promise(async (resolve, reject) => {
-            try {
-
-                const reportTypes = await reportsHelper.types();
-
-                return resolve({
-                    message: reportTypes.message,
-                    result: reportTypes.data
-                });
-
-            } catch (error) {
-                return reject({
-                    status: error.status || HTTP_STATUS_CODE.internal_server_error.status,
-                    message: error.message || HTTP_STATUS_CODE.internal_server_error.message,
-                    errorObject: error
-                });
-            }
-        })
-    }
-
-    /**
-    * @api {get} /improvement-project/api/v1/reports/getProgramsByEntity/:_id
+    * @api {post} /improvement-project/api/v1/reports/getProgramsByEntity/:_id
     * Get programs by entity.
     * @apiVersion 1.0.0
     * @apiGroup Reports
-    * @apiSampleRequest /improvement-project/api/v1/reports/getProgramsByEntity/5ddf79ff47e9260268c9547a?page=1&limi1=10&search=a
+    * @apiSampleRequest /improvement-project/api/v1/reports/getProgramsByEntity/5ddf79ff47e9260268c9547a?page=1&limit=10&search=a
+    * @apiParamExample {json} Request:
+    {
+        "role": "HM,DEO",
+    }
     * @apiParamExample {json} Response:
     * {
         "message": "Programs fetched successfully",

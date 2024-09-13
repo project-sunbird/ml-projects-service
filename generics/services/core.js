@@ -9,7 +9,7 @@
 const request = require('request');
 const fs = require("fs");
 
-const KENDRA_URL = process.env.ML_CORE_SERVICE_URL;
+const ML_CORE_URL = process.env.ML_CORE_SERVICE_URL;
 
 /**
   * Get downloadable file.
@@ -21,7 +21,9 @@ const KENDRA_URL = process.env.ML_CORE_SERVICE_URL;
 
 const getDownloadableUrl = function (bodyData) {
 
-    let fileDownloadUrl = KENDRA_URL + CONSTANTS.endpoints.FILES_DOWNLOADABLE_URL;
+    let fileDownloadUrl = ML_CORE_URL + CONSTANTS.endpoints.FILES_DOWNLOADABLE_URL;
+
+    console.log("File Downloadable url is",fileDownloadUrl);
 
     return new Promise((resolve, reject) => {
         try {
@@ -33,9 +35,11 @@ const getDownloadableUrl = function (bodyData) {
                 };
 
                 if (err) {
+                    console.log("File download error is",err);
                     result.success = false;
                 } else {
                     let response = data.body;
+                    console.log("File downloaded response is",response);
 
                     if( response.status === HTTP_STATUS_CODE['ok'].status ) {
                         result["data"] = response.result;
@@ -79,7 +83,7 @@ const entityTypesDocuments = function (
     return new Promise(async (resolve, reject) => {
         try {
             
-            const url = KENDRA_URL + CONSTANTS.endpoints.LIST_ENTITY_TYPES;
+            const url = ML_CORE_URL + CONSTANTS.endpoints.LIST_ENTITY_TYPES;
 
             const options = {
                 headers : {
@@ -141,7 +145,7 @@ const rolesDocuments = function (
     return new Promise(async (resolve, reject) => {
         try {
             
-            const url = KENDRA_URL + CONSTANTS.endpoints.LIST_USER_ROLES;
+            const url = ML_CORE_URL + CONSTANTS.endpoints.LIST_USER_ROLES;
 
             const options = {
                 headers : {
@@ -197,7 +201,7 @@ const formDetails = function ( formName ) {
         try {
             
             const url = 
-            KENDRA_URL + 
+            ML_CORE_URL + 
             CONSTANTS.endpoints.DETAILS_FORM + "/" + formName;
 
             const options = {
@@ -251,7 +255,7 @@ const entityDocuments = function (
     return new Promise(async (resolve, reject) => {
         try {
             
-            const url = KENDRA_URL + CONSTANTS.endpoints.LIST_ENTITIES;
+            const url = ML_CORE_URL + CONSTANTS.endpoints.LIST_ENTITIES;
 
             const options = {
                 headers : {
@@ -302,11 +306,15 @@ const entityDocuments = function (
   * @returns {JSON} - Create user program and solution.
 */
 
-const createUserProgramAndSolution = function ( data,userToken ) {
+const createUserProgramAndSolution = function ( data,userToken, createADuplicateSolution = "" ) {
     return new Promise(async (resolve, reject) => {
         try {
             
-            const url = KENDRA_URL + CONSTANTS.endpoints.CREATE_PROGRAM_AND_SOLUTION;
+            let url = ML_CORE_URL + CONSTANTS.endpoints.CREATE_PROGRAM_AND_SOLUTION;
+
+            if( createADuplicateSolution == false ) {
+                url = url + "?createADuplicateSolution=" + true;
+            }
 
             const options = {
                 headers : {
@@ -358,7 +366,7 @@ const getProfile = function ( token ) {
     return new Promise(async (resolve, reject) => {
         try {
             
-            const url = KENDRA_URL + CONSTANTS.endpoints.USER_EXTENSION_GET_PROFILE;
+            const url = ML_CORE_URL + CONSTANTS.endpoints.USER_EXTENSION_GET_PROFILE;
 
             const options = {
                 headers : {
@@ -411,7 +419,7 @@ const updateUserProfile = function ( token,updateData ) {
     return new Promise(async (resolve, reject) => {
         try {
             
-            const url = KENDRA_URL + 
+            const url = ML_CORE_URL + 
             CONSTANTS.endpoints.USER_EXTENSION_UPDATE_USER_PROFILE;
 
             const options = {
@@ -458,7 +466,7 @@ const userPrivatePrograms = function ( token ) {
     return new Promise(async (resolve, reject) => {
         try {
             
-            const url = KENDRA_URL + 
+            const url = ML_CORE_URL + 
             CONSTANTS.endpoints.USER_PRIVATE_PROGRAMS;
 
             const options = {
@@ -508,7 +516,7 @@ const getUsersByEntityAndRole = function (
     return new Promise(async (resolve, reject) => {
         try {
             
-            const url = KENDRA_URL + CONSTANTS.endpoints.GET_USERS_BY_ENTITY_AND_ROLE + "/" + entityId + "?role=" + role;
+            const url = ML_CORE_URL + CONSTANTS.endpoints.GET_USERS_BY_ENTITY_AND_ROLE + "/" + entityId + "?role=" + role;
            
             const options = {
                 headers : {
@@ -560,7 +568,7 @@ const createSolution = function ( bodyData,token ) {
      return new Promise(async (resolve, reject) => {
          try {
              
-             const url = KENDRA_URL + CONSTANTS.endpoints.CREATE_IMPROVEMENT_PROJECT_SOLUTION;
+             const url = ML_CORE_URL + CONSTANTS.endpoints.CREATE_IMPROVEMENT_PROJECT_SOLUTION;
             
              const options = {
                  headers : {
@@ -616,7 +624,7 @@ const solutionBasedOnRoleAndLocation = function ( token,bodyData,typeAndSubType,
         try {
             
             let url = 
-            KENDRA_URL + CONSTANTS.endpoints.SOLUTION_BASED_ON_ROLE_LOCATION+ "?type=" + typeAndSubType + "&subType=" + typeAndSubType;
+            ML_CORE_URL + CONSTANTS.endpoints.SOLUTION_BASED_ON_ROLE_LOCATION+ "?type=" + typeAndSubType + "&subType=" + typeAndSubType;
 
             if( searchText !== "" ) {
                 url = url + "&search=" + searchText;
@@ -674,9 +682,8 @@ const solutionBasedOnRoleAndLocation = function ( token,bodyData,typeAndSubType,
 const solutionDetailsBasedOnRoleAndLocation = function ( token,bodyData,solutionId ) {
     return new Promise(async (resolve, reject) => {
         try {
-            
             const url = 
-            KENDRA_URL + CONSTANTS.endpoints.SOLUTION_DETAILS_BASED_ON_ROLE_LOCATION + "/" + solutionId;
+            ML_CORE_URL + CONSTANTS.endpoints.SOLUTION_DETAILS_BASED_ON_ROLE_LOCATION + "/" + solutionId;
 
             const options = {
                 headers : {
@@ -718,33 +725,41 @@ const solutionDetailsBasedOnRoleAndLocation = function ( token,bodyData,solution
 }
 
 /**
-  * Update solution
+  * program Join Api.
   * @function
-  * @name getUserOrganisationsAndRootOrganisations
-  * @param {String} token - Logged in user token.
-  * @param {String} userId - User id.
-  * @returns {JSON} - Update solutions.
+  * @name joinProgram
+  * @param {String} userToken - User token.
+  * @param {Object} bodyData - Requested body data.
+  * @param {String} programId - program id.
+  * @returns {JSON} - Program Join Status.
 */
-
-const getUserOrganisationsAndRootOrganisations = function ( token,userId = "" ) {
+const joinProgram = function (programId,bodyData,userToken) {
     return new Promise(async (resolve, reject) => {
         try {
-
-            let url = 
-            KENDRA_URL + 
-            CONSTANTS.endpoints.GET_USER_ORGANISATIONS;
-
-            if( userId !== "" ) {
-                url = url + "/" + userId;
-            }
-
+            
+            const url = 
+            ML_CORE_URL + CONSTANTS.endpoints.PROGRAM_JOIN + "/" + programId;
             const options = {
                 headers : {
                     "content-type": "application/json",
-                    "x-authenticated-user-token" : token
-                }
+                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
+                    "x-authenticated-user-token" : userToken,
+                },
+               
             };
 
+            if ( bodyData.appVersion !== "" ) {
+                options.headers.appversion = bodyData.appVersion;
+                delete bodyData.appVersion
+            }
+
+            if ( bodyData.appName !== "" ) {
+                options.headers.appname = bodyData.appName;
+                delete bodyData.appName
+            } 
+
+
+            options.json = bodyData
             request.post(url,options,kendraCallback);
 
             function kendraCallback(err, data) {
@@ -756,14 +771,13 @@ const getUserOrganisationsAndRootOrganisations = function ( token,userId = "" ) 
                 if (err) {
                     result.success = false;
                 } else {
-
-                    let response = JSON.parse(data.body);
+                    
+                    let response = data.body;
                     if( response.status === HTTP_STATUS_CODE['ok'].status ) {
                         result["data"] = response.result;
                     } else {
                         result.success = false;
                     }
-
                 }
 
                 return resolve(result);
@@ -775,6 +789,51 @@ const getUserOrganisationsAndRootOrganisations = function ( token,userId = "" ) 
     })
 }
 
+
+const checkIfSolutionIsTargetedForUserProfile = function ( token,bodyData,solutionId ) {
+    return new Promise(async (resolve, reject) => {
+        try {
+            
+            const url = 
+            ML_CORE_URL + CONSTANTS.endpoints.IS_TARGETED_BASED_ON_USER_PROFILE + "/" + solutionId;
+
+            const options = {
+                headers : {
+                    "content-type": "application/json",
+                    "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
+                    "x-authenticated-user-token" : token
+                },
+                json : bodyData
+            };
+
+            request.post(url,options,verifyTargetedSolutionCallback);
+
+            function verifyTargetedSolutionCallback(err, data) {
+
+                let result = {
+                    success : true
+                };
+
+                if (err) {
+                    result.success = false;
+                } else {
+                    
+                    let response = data.body;
+                    if( response.status === HTTP_STATUS_CODE['ok'].status ) {
+                        result["data"] = response.result;
+                    } else {
+                        result.success = false;
+                    }
+                }
+
+                return resolve(result);
+            }
+
+        } catch (error) {
+            return reject(error);
+        }
+    })
+}
 module.exports = {
     entityTypesDocuments : entityTypesDocuments,
     rolesDocuments : rolesDocuments,
@@ -788,7 +847,8 @@ module.exports = {
     createSolution: createSolution,
     solutionBasedOnRoleAndLocation : solutionBasedOnRoleAndLocation,
     solutionDetailsBasedOnRoleAndLocation : solutionDetailsBasedOnRoleAndLocation,
-    getDownloadableUrl : getDownloadableUrl,
-    getUserOrganisationsAndRootOrganisations : getUserOrganisationsAndRootOrganisations
+    getDownloadableUrl : getDownloadableUrl, 
+    joinProgram: joinProgram,
+    checkIfSolutionIsTargetedForUserProfile:checkIfSolutionIsTargetedForUserProfile
 };
 

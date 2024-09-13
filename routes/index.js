@@ -64,7 +64,7 @@ module.exports = function (app) {
                 'attachment; filename=' + result.fileNameWithPath.split('/').pop()
               );
               res.set('Content-Type', 'application/octet-stream');
-              fs.createReadStream(result.fileNameWithPath).pipe(res);
+              fs.createReadStream(result.fileNameWithPath.replace(/\.\.\//g, '')).pipe(res);
 
             } else {
 
@@ -89,7 +89,7 @@ module.exports = function (app) {
         }
 
           console.log('-------------------Response log starts here-------------------');
-          console.log(result);
+          console.log(JSON.stringify(result));
           console.log('-------------------Response log ends here-------------------');
       }
       catch (error) {

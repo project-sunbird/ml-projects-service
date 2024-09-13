@@ -1,0 +1,2060 @@
+[
+  {
+    "_id": "6017ce2ed0993d433a596de0",
+    "userId": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+    "userRole": "CHM",
+    "createdFor": ["0126796199493140480", "01275629649735680040708"],
+    "status": "started",
+    "isDeleted": false,
+    "categories": [
+      {
+        "_id": "5fcfa9a2457d6055e33843f2",
+        "externalId": "community",
+        "name": "Community"
+      }
+    ],
+    "createdBy": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+    "tasks": [
+      {
+        "_id": "e4b85120-b2c6-41ce-9a04-e3c05ba2a9d7",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "f742154a-793c-45d6-b61e-c49a65b1047a",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "e4b85120-b2c6-41ce-9a04-e3c05ba2a9d7",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Look for videos and case studies which capture the parent mela or parent meeting conducted in different schools. Focus on the ideas being used and themes being selected.",
+            "externalId": "IMP-3147aa-TASK7",
+            "description": "",
+            "updatedAt": "2021-02-01T09:47:26.173+0000",
+            "createdAt": "2020-12-10T15:53:31.476+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d5",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-01T09:47:26.173+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Look for samples of parent mela/ excitement building parent meeting from different schools",
+        "externalId": "IMP-3147aa-TASK1-1611320352803",
+        "description": "",
+        "updatedAt": "2021-02-01T09:47:26.173+0000",
+        "createdAt": "2020-12-10T15:53:31.460+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-01T09:47:26.173+0000"
+      },
+      {
+        "_id": "9bf13931-a814-4f5f-bae9-f5eba9085913",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "d833bae3-0788-4d66-82aa-4543b0c5fa57",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "9bf13931-a814-4f5f-bae9-f5eba9085913",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "-Meeting with teachers to discuss the importance and role of parent mela in improving community engagement in the school.",
+            "externalId": "IMP-3147aa-TASK8",
+            "description": "",
+            "updatedAt": "2021-02-01T09:47:26.173+0000",
+            "createdAt": "2020-12-10T15:53:31.481+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d6",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-01T09:47:26.173+0000"
+          },
+          {
+            "_id": "9ff85ddf-3c04-41c8-b5bb-8be77955b760",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "9bf13931-a814-4f5f-bae9-f5eba9085913",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "-Discuss stories from other schools.",
+            "externalId": "IMP-3147aa-TASK13",
+            "description": "",
+            "updatedAt": "2021-02-01T09:47:26.173+0000",
+            "createdAt": "2020-12-10T15:53:31.509+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d6",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-01T09:47:26.173+0000"
+          },
+          {
+            "_id": "f6d32bed-f497-4378-95c3-db89901e2b24",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "9bf13931-a814-4f5f-bae9-f5eba9085913",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "- Form a committee among teachers to plan and facilitate the mela along with the school leader.",
+            "externalId": "IMP-3147aa-TASK14",
+            "description": "",
+            "updatedAt": "2021-02-01T09:47:26.173+0000",
+            "createdAt": "2020-12-10T15:53:31.521+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d6",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-01T09:47:26.173+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Form a parent mela committee among the teachers",
+        "externalId": "IMP-3147aa-TASK2-1611320352805",
+        "description": "",
+        "updatedAt": "2021-02-01T09:47:26.173+0000",
+        "createdAt": "2020-12-10T15:53:31.463+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-01T09:47:26.173+0000"
+      },
+      {
+        "_id": "954511f2-d7ab-4e6d-acde-a9fa9c76768e",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "95a157d9-47bd-4095-ae1e-cc367deed3c6",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "954511f2-d7ab-4e6d-acde-a9fa9c76768e",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Finalize the themes and activities for the mela. This could be taken borrowed from other schools or decided by the teachers through brainstorming. \nFinalize the dates for the same",
+            "externalId": "IMP-3147aa-TASK9",
+            "description": "",
+            "updatedAt": "2021-02-01T09:47:26.174+0000",
+            "createdAt": "2020-12-10T15:53:31.487+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d7",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-01T09:47:26.174+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Planning for the mela",
+        "externalId": "IMP-3147aa-TASK3-1611320352808",
+        "description": "",
+        "updatedAt": "2021-02-01T09:47:26.173+0000",
+        "createdAt": "2020-12-10T15:53:31.465+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-01T09:47:26.174+0000"
+      },
+      {
+        "_id": "2160c6bd-8a19-4a9a-a426-72e50cb9e6dd",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "a3e89f70-ce2d-4665-9ad6-b850595779f0",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "2160c6bd-8a19-4a9a-a426-72e50cb9e6dd",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Communicate the event with parents and invite them to the mela",
+            "externalId": "IMP-3147aa-TASK10",
+            "description": "",
+            "updatedAt": "2021-02-01T09:47:26.174+0000",
+            "createdAt": "2020-12-10T15:53:31.493+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d8",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-01T09:47:26.174+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Invite parents",
+        "externalId": "IMP-3147aa-TASK4-1611320352811",
+        "description": "",
+        "updatedAt": "2021-02-01T09:47:26.174+0000",
+        "createdAt": "2020-12-10T15:53:31.468+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-01T09:47:26.174+0000"
+      },
+      {
+        "_id": "be7e0147-566f-481c-9d15-9e2eb60ec7e5",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "d563818f-fd71-4119-b24d-5a122b98f3d4",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "be7e0147-566f-481c-9d15-9e2eb60ec7e5",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Do necessary arrangements for smooth functioning of the event and to make it attractive and interesting to parents",
+            "externalId": "IMP-3147aa-TASK11",
+            "description": "",
+            "updatedAt": "2021-02-01T09:47:26.174+0000",
+            "createdAt": "2020-12-10T15:53:31.498+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d9",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-01T09:47:26.174+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Make the arrangements",
+        "externalId": "IMP-3147aa-TASK5-1611320352814",
+        "description": "",
+        "updatedAt": "2021-02-01T09:47:26.174+0000",
+        "createdAt": "2020-12-10T15:53:31.471+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-01T09:47:26.174+0000"
+      },
+      {
+        "_id": "ad68fca1-1e37-45a0-b7cc-11e93fb2c23a",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "e1d2f43f-1f0a-4167-b27b-104baf530d9f",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "ad68fca1-1e37-45a0-b7cc-11e93fb2c23a",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Make sure you collect feedback from parents after the event and reflect among the teachers to see the areas of improvement for next year.",
+            "externalId": "IMP-3147aa-TASK12",
+            "description": "",
+            "updatedAt": "2021-02-01T09:47:26.174+0000",
+            "createdAt": "2020-12-10T15:53:31.503+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15da",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-01T09:47:26.174+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Collect feedback after the event",
+        "externalId": "IMP-3147aa-TASK6-1611320352816",
+        "description": "",
+        "updatedAt": "2021-02-01T09:47:26.174+0000",
+        "createdAt": "2020-12-10T15:53:31.473+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-01T09:47:26.174+0000"
+      },
+      {
+        "_id": "0cb96fa4-054d-48ed-a000-89763e1aad6f",
+        "createdBy": "e7719630-0457-47ca-a5ce-8190ffb34f13",
+        "updatedBy": "e7719630-0457-47ca-a5ce-8190ffb34f13",
+        "isDeleted": false,
+        "taskSequence": [],
+        "children": [],
+        "visibleIf": [],
+        "hasSubTasks": false,
+        "learningResources": [],
+        "deleted": false,
+        "type": "observation",
+        "solutionDetails": {
+          "_id": "600b21227ea68a7ed9278868",
+          "isReusable": false,
+          "externalId": "AP-TEST-PROGRAM-3.6.5-OBS-IMP-PROJECT-2-BEO",
+          "name": "AP-TEST-PROGRAM-3.6.5-OBS-IMP-PROJECT-2-BEO",
+          "programId": "600ab53cc7de076e6f993724",
+          "type": "observation",
+          "subType": "block",
+          "allowMultipleAssessemts": false,
+          "isRubricDriven": false,
+          "criteriaLevelReport": "",
+          "scoringSystem": "",
+          "minNoOfSubmissionsRequired": 1
+        },
+        "name": "Observation task for BEO",
+        "externalId": "OT-3.6.5-BEO",
+        "description": "Observation task for BEO",
+        "updatedAt": "2021-02-01T09:47:26.174+0000",
+        "createdAt": "2020-12-01T17:06:56.999+0000",
+        "isDeletable": false,
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-01T09:47:26.174+0000",
+        "observationInformation": {
+          "entityId": "d8a34179-d925-4bca-a320-3d8c7cbcffa4",
+          "programId": "600ab53cc7de076e6f993724",
+          "solutionId": "600b21227ea68a7ed9278868"
+        }
+      }
+    ],
+    "updatedBy": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+    "rootOrganisations": ["0126796199493140480"],
+    "learningResources": [
+      {
+        "name": "Examprep_10EM_ps_cha1_Q3",
+        "id": "do_31268582767737241615189",
+        "app": "diksha",
+        "link": "https://staging.sunbirded.org/resources/play/content/do_31268582767737241615189"
+      },
+      {
+        "name": "Examprep_10tm_ps_cha 11-Q2",
+        "id": "do_31269107959395942417491",
+        "app": "diksha",
+        "link": "https://staging.sunbirded.org/resources/play/content/do_31269107959395942417491"
+      },
+      {
+        "name": "Examprep_10tm_ps_cha 11-Q3",
+        "id": "do_31269108472948326417493",
+        "app": "diksha",
+        "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+      }
+    ],
+    "deleted": false,
+    "description": "Come See Our School!- Parent Mela",
+    "title": "Come See Our School!- Parent Mela",
+    "metaInformation": {
+      "rationale": "",
+      "primaryAudience": ["Community"],
+      "goal": "Organizing the Parent Mela in the school in order to make better community reach",
+      "duration": "At the end of every quarter",
+      "successIndicators": "",
+      "risks": "",
+      "approaches": ""
+    },
+    "updatedAt": "2023-07-12T12:01:15.790+0000",
+    "createdAt": "2021-02-01T09:47:26.161+0000",
+    "__v": 0,
+    "solutionId": "600acbe7c7de076e6f9950a4",
+    "solutionExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+    "programId": "600ab53cc7de076e6f993724",
+    "programExternalId": "AP-TEST-PROGRAM-3.6.5",
+    "projectTemplateId": "600acc20a0cc3e4909f91f68",
+    "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+    "taskReport": {
+      "total": 7,
+      "notStarted": 7
+    },
+    "isAPrivateProgram": false,
+    "programInformation": {
+      "_id": "600ab53cc7de076e6f993724",
+      "externalId": "AP-TEST-PROGRAM-3.6.5",
+      "description": "AP Test program for release 3.6.5",
+      "name": "AP-TEST-PROGRAM-3.6.5"
+    },
+    "solutionInformation": {
+      "_id": "600acbe7c7de076e6f9950a4",
+      "externalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-BEO",
+      "description": "Description of Come See Our School!- Parent Mela",
+      "name": "Come See Our School!- Parent Mela"
+    },
+    "entityInformation": {
+      "externalId": "282316",
+      "name": "B.N.KANDRIGA",
+      "district": "D_AP-D013",
+      "districtId": "5fd098e2e049735a86b748b8",
+      "state": "AP",
+      "_id": "d8a34179-d925-4bca-a320-3d8c7cbcffa4",
+      "entityType": "block",
+      "entityTypeId": "5f32d8228e0dc8312404056b",
+      "registryDetails": {
+        "locationId": "d8a34179-d925-4bca-a320-3d8c7cbcffa4",
+        "code": "282316",
+        "lastUpdatedAt": "2021-01-27T13:12:17.009Z"
+      },
+      "hierarchy": [
+        {
+          "code": "2823",
+          "name": "Chittoor",
+          "id": "b5c35cfc-6c1e-4266-94ef-a425c43c7f4e",
+          "type": "district",
+          "parentId": "bc75cc99-9205-463e-a722-5326857838f8"
+        },
+        {
+          "code": "28",
+          "name": "Andhra Pradesh",
+          "id": "bc75cc99-9205-463e-a722-5326857838f8",
+          "type": "state"
+        }
+      ]
+    },
+    "entityId": "d8a34179-d925-4bca-a320-3d8c7cbcffa4",
+    "lastDownloadedAt": "2021-02-01T09:47:26.180+0000",
+    "appInformation": {
+      "appName": "DIKSHA",
+      "appVersion": "86"
+    },
+    "hasAcceptedTAndC": false,
+    "userProfile": {
+      "webPages": null,
+      "maskedPhone": null,
+      "tcStatus": null,
+      "loginId": null,
+      "subject": null,
+      "channel": "dikshapreprodcustodian",
+      "profileUserTypes": [
+        {
+          "type": "administrator",
+          "subType": "chm"
+        }
+      ],
+      "language": null,
+      "updatedDate": "2021-02-03 07:43:13:773+0000",
+      "password": null,
+      "managedBy": null,
+      "flagsValue": 2,
+      "id": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+      "recoveryEmail": "",
+      "identifier": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+      "thumbnail": null,
+      "profileVisibility": null,
+      "updatedBy": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+      "accesscode": null,
+      "externalIds": [],
+      "registryId": null,
+      "roleList": [
+        {
+          "name": "Book Creator",
+          "id": "BOOK_CREATOR"
+        },
+        {
+          "name": "Membership Management",
+          "id": "MEMBERSHIP_MANAGEMENT"
+        },
+        {
+          "name": "Flag Reviewer",
+          "id": "FLAG_REVIEWER"
+        },
+        {
+          "name": "Report Viewer",
+          "id": "REPORT_VIEWER"
+        },
+        {
+          "name": "Program Manager",
+          "id": "PROGRAM_MANAGER"
+        },
+        {
+          "name": "Program Designer",
+          "id": "PROGRAM_DESIGNER"
+        },
+        {
+          "name": "System Administration",
+          "id": "SYSTEM_ADMINISTRATION"
+        },
+        {
+          "name": "Content Curation",
+          "id": "CONTENT_CURATION"
+        },
+        {
+          "name": "Book Reviewer",
+          "id": "BOOK_REVIEWER"
+        },
+        {
+          "name": "Content Creator",
+          "id": "CONTENT_CREATOR"
+        },
+        {
+          "name": "Org Management",
+          "id": "ORG_MANAGEMENT"
+        },
+        {
+          "name": "Course Admin",
+          "id": "COURSE_ADMIN"
+        },
+        {
+          "name": "Org Moderator",
+          "id": "ORG_MODERATOR"
+        },
+        {
+          "name": "Public",
+          "id": "PUBLIC"
+        },
+        {
+          "name": "Admin",
+          "id": "ADMIN"
+        },
+        {
+          "name": "Course Mentor",
+          "id": "COURSE_MENTOR"
+        },
+        {
+          "name": "Content Reviewer",
+          "id": "CONTENT_REVIEWER"
+        },
+        {
+          "name": "Report Admin",
+          "id": "REPORT_ADMIN"
+        },
+        {
+          "name": "Org Admin",
+          "id": "ORG_ADMIN"
+        }
+      ],
+      "rootOrgId": "0126796199493140480",
+      "prevUsedEmail": "",
+      "firstName": "smith2",
+      "tncAcceptedOn": 1610945494371.0,
+      "allTncAccepted": {},
+      "profileDetails": null,
+      "phone": "",
+      "dob": null,
+      "grade": null,
+      "currentLoginTime": null,
+      "userType": "administrator",
+      "status": 1,
+      "lastName": "",
+      "tncLatestVersion": "v12",
+      "gender": null,
+      "prevUsedPhone": "",
+      "stateValidated": false,
+      "encEmail": "dcXWh0a/IoZzf0BBo5YDesOQpg7YRsDDKJgzfiiKU1h5HUNPlEdrbYgQ6JBFa90WEd2tj0l4QKD9\nk+2W3uL5PE9KY9CSOe31SGfXFLfHPU+S1cV3v0vYkBPcrmgb2jY3T6a+wzaAmCWueMEdPmZuRg==",
+      "isDeleted": false,
+      "organisations": [
+        {
+          "organisationId": "0126796199493140480",
+          "approvedBy": null,
+          "channel": "dikshapreprodcustodian",
+          "updatedDate": null,
+          "approvaldate": null,
+          "isSystemUpload": false,
+          "isDeleted": false,
+          "id": "0131968698566574080",
+          "isApproved": null,
+          "orgjoindate": "2021-01-18 04:50:58:065+0000",
+          "isSelfDeclaration": true,
+          "updatedBy": null,
+          "orgName": "Staging Custodian Organization",
+          "addedByName": null,
+          "addedBy": null,
+          "associationType": 2,
+          "locationIds": [
+            "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf",
+            "8250d58d-f1a2-4397-bfd3-b2e688ba7141"
+          ],
+          "orgLocation": [
+            {
+              "type": "state",
+              "id": "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf"
+            },
+            {
+              "type": "district",
+              "id": "8250d58d-f1a2-4397-bfd3-b2e688ba7141"
+            }
+          ],
+          "externalId": "101010",
+          "userId": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+          "isSchool": false,
+          "hashTagId": "0126796199493140480",
+          "isSSO": false,
+          "isRejected": null,
+          "locations": [
+            {
+              "code": "29",
+              "name": "Karnataka",
+              "id": "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf",
+              "type": "state",
+              "parentId": null
+            },
+            {
+              "code": "2901",
+              "name": "BELAGAVI",
+              "id": "8250d58d-f1a2-4397-bfd3-b2e688ba7141",
+              "type": "district",
+              "parentId": "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf"
+            }
+          ],
+          "position": null,
+          "orgLeftDate": null
+        }
+      ],
+      "provider": null,
+      "countryCode": null,
+      "tncLatestVersionUrl": "https://sunbirdstagingpublic.blob.core.windows.net/termsandcondtions/terms-and-conditions-v12.html",
+      "maskedEmail": "sm****@yopmail.com",
+      "tempPassword": null,
+      "email": "sm****@yopmail.com",
+      "rootOrg": {
+        "dateTime": null,
+        "preferredLanguage": null,
+        "keys": {},
+        "organisationSubType": null,
+        "channel": "dikshapreprodcustodian",
+        "approvedBy": null,
+        "description": "Pre-prod Custodian Organization",
+        "updatedDate": "2022-02-18 09:50:42:752+0000",
+        "organisationType": 5,
+        "addressId": null,
+        "orgType": null,
+        "isTenant": true,
+        "provider": null,
+        "locationId": null,
+        "orgCode": null,
+        "theme": null,
+        "id": "0126796199493140480",
+        "communityId": null,
+        "isApproved": null,
+        "isBoard": true,
+        "email": null,
+        "slug": "dikshapreprodcustodian",
+        "isSSOEnabled": null,
+        "thumbnail": null,
+        "orgName": "Staging Custodian Organization",
+        "updatedBy": null,
+        "locationIds": [
+          "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf",
+          "8250d58d-f1a2-4397-bfd3-b2e688ba7141"
+        ],
+        "externalId": "101010",
+        "orgLocation": [
+          {
+            "type": "state",
+            "id": "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf"
+          },
+          {
+            "type": "district",
+            "id": "8250d58d-f1a2-4397-bfd3-b2e688ba7141"
+          }
+        ],
+        "isRootOrg": true,
+        "rootOrgId": "0126796199493140480",
+        "imgUrl": null,
+        "approvedDate": null,
+        "homeUrl": null,
+        "orgTypeId": null,
+        "isDefault": null,
+        "createdDate": "2019-01-18 09:48:13:428+0000",
+        "createdBy": "system",
+        "parentOrgId": null,
+        "hashTagId": "0126796199493140480",
+        "noOfMembers": null,
+        "status": 1
+      },
+      "phoneVerified": true,
+      "profileSummary": null,
+      "tcUpdatedDate": null,
+      "userLocations": [
+        {
+          "code": "2823",
+          "name": "CHITTOOR",
+          "id": "b5c35cfc-6c1e-4266-94ef-a425c43c7f4e",
+          "type": "district",
+          "parentId": "bc75cc99-9205-463e-a722-5326857838f8"
+        },
+        {
+          "code": "28",
+          "name": "Andhra Pradesh",
+          "id": "bc75cc99-9205-463e-a722-5326857838f8",
+          "type": "state",
+          "parentId": null
+        },
+        {
+          "code": "282316",
+          "name": "B.N.KANDRIGA",
+          "id": "d8a34179-d925-4bca-a320-3d8c7cbcffa4",
+          "type": "block",
+          "parentId": "b5c35cfc-6c1e-4266-94ef-a425c43c7f4e"
+        }
+      ],
+      "recoveryPhone": "******1076",
+      "avatar": null,
+      "userName": "smith2",
+      "userId": "a102c136-c6da-4c6c-b6b7-0f0681e1aab9",
+      "userSubType": "chm",
+      "declarations": [
+        {
+          "persona": "default",
+          "errorType": null,
+          "orgId": "12765997661519872117",
+          "status": "SUBMITTED",
+          "info": {
+            "declared-email": "smith2@yopmail.com",
+            "declared-ext-id": "123",
+            "declared-school-name": "A.P.T.W.E.M..R SCHOOL",
+            "declared-school-udise-code": "28231601515"
+          }
+        },
+        {
+          "persona": "default",
+          "errorType": null,
+          "orgId": "do_213199093633138688144",
+          "status": null,
+          "info": {}
+        }
+      ],
+      "promptTnC": true,
+      "emailVerified": true,
+      "lastLoginTime": 0,
+      "createdDate": "2021-01-18 04:50:57:268+0000",
+      "framework": {
+        "board": ["IGOT-Health"],
+        "gradeLevel": ["Doctors", "Nurses"],
+        "id": ["igot_health"],
+        "medium": ["English", "Hindi"]
+      },
+      "createdBy": null,
+      "profileUserType": {
+        "type": "administrator",
+        "subType": "chm"
+      },
+      "encPhone": "",
+      "location": null,
+      "tncAcceptedVersion": "3.5.0"
+    }
+  },
+  {
+    "_id": "6018ef65879c09505d77fc3d",
+    "userId": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+    "userRole": "DEO",
+    "createdFor": ["0126796199493140480", "01275630154475110432564"],
+    "status": "started",
+    "isDeleted": false,
+    "categories": [
+      {
+        "_id": "5fcfa9a2457d6055e33843f0",
+        "name": "Students",
+        "externalId": "students"
+      },
+      {
+        "_id": "5fcfa9a2457d6055e33843f1",
+        "name": "Infrastructure",
+        "externalId": "infrastructure"
+      },
+      {
+        "_id": "5fcfa9a2457d6055e33843f2",
+        "name": "Community",
+        "externalId": "community"
+      }
+    ],
+    "createdBy": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+    "tasks": [
+      {
+        "_id": "61b9c72a-731b-4970-b715-0c1e928a86fb",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "9cecd670-d1e9-46c9-9987-d2540953edc4",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "61b9c72a-731b-4970-b715-0c1e928a86fb",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Look for videos and case studies which capture the parent mela or parent meeting conducted in different schools. Focus on the ideas being used and themes being selected.",
+            "externalId": "IMP-3147aa-TASK7",
+            "description": "",
+            "updatedAt": "2021-02-02T06:21:25.075+0000",
+            "createdAt": "2020-12-10T15:53:31.476+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d5",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-02T06:21:25.075+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Look for samples of parent mela/ excitement building parent meeting from different schools",
+        "externalId": "IMP-3147aa-TASK1-1611320417509",
+        "description": "",
+        "updatedAt": "2021-02-02T06:21:25.075+0000",
+        "createdAt": "2020-12-10T15:53:31.460+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-02T06:21:25.075+0000"
+      },
+      {
+        "_id": "a2cad0dd-5c7b-4848-af70-155da9277744",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "985b1846-302d-4988-ab0e-a78acb310b26",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "a2cad0dd-5c7b-4848-af70-155da9277744",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "-Meeting with teachers to discuss the importance and role of parent mela in improving community engagement in the school.",
+            "externalId": "IMP-3147aa-TASK8",
+            "description": "",
+            "updatedAt": "2021-02-02T06:21:25.076+0000",
+            "createdAt": "2020-12-10T15:53:31.481+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d6",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-02T06:21:25.076+0000"
+          },
+          {
+            "_id": "e746fd95-6cbe-415c-bfce-e4de82d0b879",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "a2cad0dd-5c7b-4848-af70-155da9277744",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "-Discuss stories from other schools.",
+            "externalId": "IMP-3147aa-TASK13",
+            "description": "",
+            "updatedAt": "2021-02-02T06:21:25.076+0000",
+            "createdAt": "2020-12-10T15:53:31.509+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d6",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-02T06:21:25.076+0000"
+          },
+          {
+            "_id": "aaf8bf9e-31d0-4b83-aac6-aaaeebc75b49",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "a2cad0dd-5c7b-4848-af70-155da9277744",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "- Form a committee among teachers to plan and facilitate the mela along with the school leader.",
+            "externalId": "IMP-3147aa-TASK14",
+            "description": "",
+            "updatedAt": "2021-02-02T06:21:25.076+0000",
+            "createdAt": "2020-12-10T15:53:31.521+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d6",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-02T06:21:25.076+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Form a parent mela committee among the teachers",
+        "externalId": "IMP-3147aa-TASK2-1611320417513",
+        "description": "",
+        "updatedAt": "2021-02-02T06:21:25.076+0000",
+        "createdAt": "2020-12-10T15:53:31.463+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-02T06:21:25.076+0000"
+      },
+      {
+        "_id": "0577f2c4-93f2-49a9-94d7-e4dcee92bf01",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "eacbca31-eebe-40e0-88dd-07069f16c5ec",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "0577f2c4-93f2-49a9-94d7-e4dcee92bf01",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Finalize the themes and activities for the mela. This could be taken borrowed from other schools or decided by the teachers through brainstorming. \nFinalize the dates for the same",
+            "externalId": "IMP-3147aa-TASK9",
+            "description": "",
+            "updatedAt": "2021-02-02T06:21:25.076+0000",
+            "createdAt": "2020-12-10T15:53:31.487+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d7",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-02T06:21:25.076+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Planning for the mela",
+        "externalId": "IMP-3147aa-TASK3-1611320417515",
+        "description": "",
+        "updatedAt": "2021-02-02T06:21:25.076+0000",
+        "createdAt": "2020-12-10T15:53:31.465+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-02T06:21:25.076+0000"
+      },
+      {
+        "_id": "dc310831-7c65-4afc-9c8b-1a7dd63c08ad",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "6eb049b6-f1dd-49a4-8130-ea839415784c",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "dc310831-7c65-4afc-9c8b-1a7dd63c08ad",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Communicate the event with parents and invite them to the mela",
+            "externalId": "IMP-3147aa-TASK10",
+            "description": "",
+            "updatedAt": "2021-02-02T06:21:25.076+0000",
+            "createdAt": "2020-12-10T15:53:31.493+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d8",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-02T06:21:25.076+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Invite parents",
+        "externalId": "IMP-3147aa-TASK4-1611320417519",
+        "description": "",
+        "updatedAt": "2021-02-02T06:21:25.076+0000",
+        "createdAt": "2020-12-10T15:53:31.468+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-02T06:21:25.076+0000"
+      },
+      {
+        "_id": "c166d100-fc88-40bf-a96d-07f9c95e55c9",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "428a8310-b22f-4780-998a-aa0fc4f05fed",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "c166d100-fc88-40bf-a96d-07f9c95e55c9",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Do necessary arrangements for smooth functioning of the event and to make it attractive and interesting to parents",
+            "externalId": "IMP-3147aa-TASK11",
+            "description": "",
+            "updatedAt": "2021-02-02T06:21:25.076+0000",
+            "createdAt": "2020-12-10T15:53:31.498+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15d9",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-02T06:21:25.076+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Make the arrangements",
+        "externalId": "IMP-3147aa-TASK5-1611320417521",
+        "description": "",
+        "updatedAt": "2021-02-02T06:21:25.076+0000",
+        "createdAt": "2020-12-10T15:53:31.471+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-02T06:21:25.076+0000"
+      },
+      {
+        "_id": "912e969e-82dc-4081-920a-828189b75dd6",
+        "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+        "isDeleted": false,
+        "isDeletable": true,
+        "taskSequence": [],
+        "children": [
+          {
+            "_id": "6c0e3c7f-003c-4771-b199-6a2ddcd96c28",
+            "createdBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "updatedBy": "140558b9-7df4-4993-be3c-31eb8b9ca368",
+            "isDeleted": false,
+            "taskSequence": [],
+            "children": [],
+            "visibleIf": [
+              {
+                "operator": "===",
+                "_id": "912e969e-82dc-4081-920a-828189b75dd6",
+                "value": "started"
+              }
+            ],
+            "hasSubTasks": false,
+            "learningResources": [],
+            "deleted": false,
+            "type": "simple",
+            "projectTemplateId": "5fd21654e4d17b4af8aa6f7c",
+            "name": "Make sure you collect feedback from parents after the event and reflect among the teachers to see the areas of improvement for next year.",
+            "externalId": "IMP-3147aa-TASK12",
+            "description": "",
+            "updatedAt": "2021-02-02T06:21:25.076+0000",
+            "createdAt": "2020-12-10T15:53:31.503+0000",
+            "__v": 0,
+            "parentId": "5fd2447b1233354b094f15da",
+            "isDeletable": true,
+            "projectTemplateExternalId": "IMP-3147aa",
+            "status": "notStarted",
+            "isImportedFromLibrary": false,
+            "syncedAt": "2021-02-02T06:21:25.076+0000"
+          }
+        ],
+        "visibleIf": [],
+        "hasSubTasks": true,
+        "learningResources": [
+          {
+            "name": "MOVEMENTS",
+            "id": "do_3128850456266506241713",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128850456266506241713"
+          },
+          {
+            "name": "ELECTRICITY",
+            "id": "do_3128848863878676481659",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_3128848863878676481659"
+          },
+          {
+            "name": "Examprep_10tm_ps_cha 11-Q3",
+            "id": "do_31269108472948326417493",
+            "app": "diksha",
+            "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+          }
+        ],
+        "deleted": false,
+        "type": "content",
+        "name": "Collect feedback after the event",
+        "externalId": "IMP-3147aa-TASK6-1611320417523",
+        "description": "",
+        "updatedAt": "2021-02-02T06:21:25.076+0000",
+        "createdAt": "2020-12-10T15:53:31.473+0000",
+        "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-02T06:21:25.076+0000"
+      },
+      {
+        "_id": "7065398a-20fd-46e7-9012-67a14a38066e",
+        "createdBy": "e7719630-0457-47ca-a5ce-8190ffb34f13",
+        "updatedBy": "e7719630-0457-47ca-a5ce-8190ffb34f13",
+        "isDeleted": false,
+        "taskSequence": [],
+        "children": [],
+        "visibleIf": [],
+        "hasSubTasks": false,
+        "learningResources": [],
+        "deleted": false,
+        "type": "observation",
+        "solutionDetails": {
+          "_id": "600b21c57ea68a7ed9278873",
+          "isReusable": false,
+          "externalId": "AP-TEST-PROGRAM-3.6.5-OBS-IMP-PROJECT-2-DEO",
+          "name": "AP-TEST-PROGRAM-3.6.5-OBS-IMP-PROJECT-2-DEO",
+          "programId": "600ab53cc7de076e6f993724",
+          "type": "observation",
+          "subType": "district",
+          "allowMultipleAssessemts": false,
+          "isRubricDriven": false,
+          "criteriaLevelReport": "",
+          "scoringSystem": "",
+          "minNoOfSubmissionsRequired": 1
+        },
+        "name": "Observation task for DEO",
+        "externalId": "OT-3.6.5-DEO",
+        "description": "Observation task for DEO",
+        "updatedAt": "2021-02-02T06:21:25.076+0000",
+        "createdAt": "2020-12-01T17:06:56.999+0000",
+        "isDeletable": false,
+        "status": "notStarted",
+        "isImportedFromLibrary": false,
+        "syncedAt": "2021-02-02T06:21:25.076+0000",
+        "observationInformation": {
+          "entityId": "732b83e7-cf4f-401c-a374-db1d45644b3b",
+          "programId": "600ab53cc7de076e6f993724",
+          "solutionId": "600b21c57ea68a7ed9278873",
+          "observationId": "6033a1f81bfad8731adc6dc7"
+        },
+        "submissions": []
+      }
+    ],
+    "updatedBy": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+    "rootOrganisations": ["0126796199493140480"],
+    "learningResources": [
+      {
+        "name": "Examprep_10EM_ps_cha1_Q3",
+        "id": "do_31268582767737241615189",
+        "app": "diksha",
+        "link": "https://staging.sunbirded.org/resources/play/content/do_31268582767737241615189"
+      },
+      {
+        "name": "Examprep_10tm_ps_cha 11-Q2",
+        "id": "do_31269107959395942417491",
+        "app": "diksha",
+        "link": "https://staging.sunbirded.org/resources/play/content/do_31269107959395942417491"
+      },
+      {
+        "name": "Examprep_10tm_ps_cha 11-Q3",
+        "id": "do_31269108472948326417493",
+        "app": "diksha",
+        "link": "https://staging.sunbirded.org/resources/play/content/do_31269108472948326417493"
+      }
+    ],
+    "deleted": false,
+    "description": "Come See Our School!- Parent Mela",
+    "title": "Come See Our School!- Parent Mela",
+    "metaInformation": {
+      "rationale": "",
+      "primaryAudience": ["Community"],
+      "goal": "Organizing the Parent Mela in the school in order to make better community reach",
+      "duration": "At the end of every quarter",
+      "successIndicators": "",
+      "risks": "",
+      "approaches": ""
+    },
+    "updatedAt": "2021-09-30T16:07:05.334+0000",
+    "createdAt": "2021-02-02T06:21:25.056+0000",
+    "__v": 0,
+    "solutionId": "600acc42c7de076e6f995147",
+    "solutionExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+    "programId": "600ab53cc7de076e6f993724",
+    "programExternalId": "AP-TEST-PROGRAM-3.6.5",
+    "projectTemplateId": "600acc61a0cc3e4909f91f80",
+    "projectTemplateExternalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+    "taskReport": {
+      "total": 7,
+      "notStarted": 7
+    },
+    "isAPrivateProgram": false,
+    "programInformation": {
+      "_id": "600ab53cc7de076e6f993724",
+      "externalId": "AP-TEST-PROGRAM-3.6.5",
+      "description": "AP Test program for release 3.6.5",
+      "name": "AP-TEST-PROGRAM-3.6.5"
+    },
+    "solutionInformation": {
+      "_id": "600acc42c7de076e6f995147",
+      "externalId": "AP-TEST-PROGRAM-3.6.5-IMP-PROJECT-1-DEO",
+      "description": "Description of Come See Our School!- Parent Mela",
+      "name": "Come See Our School!- Parent Mela"
+    },
+    "appInformation": {
+      "appName": "DIKSHA",
+      "appVersion": "86"
+    },
+    "entityInformation": {
+      "externalId": "2820",
+      "name": "KADAPA",
+      "region": "",
+      "districtId": "2820",
+      "state": "AP",
+      "_id": "732b83e7-cf4f-401c-a374-db1d45644b3b",
+      "entityType": "district",
+      "entityTypeId": "5f32d8228e0dc8312404056c",
+      "registryDetails": {
+        "locationId": "732b83e7-cf4f-401c-a374-db1d45644b3b",
+        "code": "2820",
+        "lastUpdatedAt": "2021-01-27T13:08:55.994Z"
+      },
+      "hierarchy": [
+        {
+          "code": "28",
+          "name": "Andhra Pradesh",
+          "id": "bc75cc99-9205-463e-a722-5326857838f8",
+          "type": "state"
+        }
+      ]
+    },
+    "entityId": "732b83e7-cf4f-401c-a374-db1d45644b3b",
+    "lastDownloadedAt": "2021-02-02T06:21:25.085+0000",
+    "lastSync": "2021-02-11T06:59:24.269+0000",
+    "syncedAt": "2021-02-11T06:59:24.269+0000",
+    "hasAcceptedTAndC": false,
+    "userRoleInformation": {
+      "district": "aecac7ab-15e4-45c9-ac7b-d716444cd652",
+      "state": "bc75cc99-9205-463e-a722-5326857838f8",
+      "block": "f6d40b8a-3ba0-4e3b-b7f5-2586b69122f6",
+      "school": "28110502802",
+      "role": "HM"
+    },
+    "userProfile": {
+      "webPages": null,
+      "maskedPhone": null,
+      "tcStatus": null,
+      "loginId": null,
+      "subject": null,
+      "channel": "dikshapreprodcustodian",
+      "profileUserTypes": [
+        {
+          "subType": "hm",
+          "type": "administrator"
+        }
+      ],
+      "language": null,
+      "updatedDate": "2021-04-21 13:06:11:740+0000",
+      "password": null,
+      "managedBy": null,
+      "flagsValue": 2,
+      "id": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+      "recoveryEmail": "",
+      "identifier": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+      "thumbnail": null,
+      "profileVisibility": null,
+      "updatedBy": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+      "accesscode": null,
+      "externalIds": [],
+      "registryId": null,
+      "roleList": [
+        {
+          "name": "Book Creator",
+          "id": "BOOK_CREATOR"
+        },
+        {
+          "name": "Membership Management",
+          "id": "MEMBERSHIP_MANAGEMENT"
+        },
+        {
+          "name": "Flag Reviewer",
+          "id": "FLAG_REVIEWER"
+        },
+        {
+          "name": "Report Viewer",
+          "id": "REPORT_VIEWER"
+        },
+        {
+          "name": "Program Manager",
+          "id": "PROGRAM_MANAGER"
+        },
+        {
+          "name": "Program Designer",
+          "id": "PROGRAM_DESIGNER"
+        },
+        {
+          "name": "System Administration",
+          "id": "SYSTEM_ADMINISTRATION"
+        },
+        {
+          "name": "Content Curation",
+          "id": "CONTENT_CURATION"
+        },
+        {
+          "name": "Book Reviewer",
+          "id": "BOOK_REVIEWER"
+        },
+        {
+          "name": "Content Creator",
+          "id": "CONTENT_CREATOR"
+        },
+        {
+          "name": "Org Management",
+          "id": "ORG_MANAGEMENT"
+        },
+        {
+          "name": "Course Admin",
+          "id": "COURSE_ADMIN"
+        },
+        {
+          "name": "Org Moderator",
+          "id": "ORG_MODERATOR"
+        },
+        {
+          "name": "Public",
+          "id": "PUBLIC"
+        },
+        {
+          "name": "Admin",
+          "id": "ADMIN"
+        },
+        {
+          "name": "Course Mentor",
+          "id": "COURSE_MENTOR"
+        },
+        {
+          "name": "Content Reviewer",
+          "id": "CONTENT_REVIEWER"
+        },
+        {
+          "name": "Report Admin",
+          "id": "REPORT_ADMIN"
+        },
+        {
+          "name": "Org Admin",
+          "id": "ORG_ADMIN"
+        }
+      ],
+      "rootOrgId": "0126796199493140480",
+      "prevUsedEmail": "",
+      "firstName": "Rejneesh R",
+      "isMinor": false,
+      "tncAcceptedOn": 1611404969636.0,
+      "allTncAccepted": {
+        "groupsTnc": {
+          "tncAcceptedOn": "2021-02-16 09:08:46:874+0000",
+          "version": "3.5.0"
+        }
+      },
+      "profileDetails": null,
+      "phone": "",
+      "dob": "1993-12-31",
+      "grade": null,
+      "currentLoginTime": null,
+      "userType": "administrator",
+      "status": 1,
+      "lastName": "",
+      "tncLatestVersion": "v12",
+      "gender": null,
+      "prevUsedPhone": "",
+      "stateValidated": false,
+      "encEmail": "1uohqqrxzkWsYjwXZtNnzHSR60U3iie3psyNAEaEQSqQUh0tAAwJU4iP3wEWbvXsLbm2FmQHebSZ\nZtJE4nop9d6nYo0pJK3k3v6YdFSJasNIMf6JTlqlIXMa0/gYdzBBT6a+wzaAmCWueMEdPmZuRg==",
+      "isDeleted": false,
+      "organisations": [
+        {
+          "organisationId": "0126796199493140480",
+          "approvedBy": null,
+          "channel": "dikshapreprodcustodian",
+          "updatedDate": null,
+          "approvaldate": null,
+          "isSystemUpload": false,
+          "isDeleted": false,
+          "id": "01319344873463808077",
+          "isApproved": null,
+          "orgjoindate": "2021-01-13 08:47:58:166+0000",
+          "isSelfDeclaration": true,
+          "updatedBy": null,
+          "orgName": "Staging Custodian Organization",
+          "addedByName": null,
+          "addedBy": null,
+          "associationType": 2,
+          "locationIds": [
+            "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf",
+            "8250d58d-f1a2-4397-bfd3-b2e688ba7141"
+          ],
+          "orgLocation": [
+            {
+              "type": "state",
+              "id": "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf"
+            },
+            {
+              "type": "district",
+              "id": "8250d58d-f1a2-4397-bfd3-b2e688ba7141"
+            }
+          ],
+          "externalId": "101010",
+          "userId": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+          "isSchool": false,
+          "hashTagId": "0126796199493140480",
+          "isSSO": false,
+          "isRejected": null,
+          "locations": [
+            {
+              "code": "29",
+              "name": "Karnataka",
+              "id": "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf",
+              "type": "state",
+              "parentId": null
+            },
+            {
+              "code": "2901",
+              "name": "BELAGAVI",
+              "id": "8250d58d-f1a2-4397-bfd3-b2e688ba7141",
+              "type": "district",
+              "parentId": "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf"
+            }
+          ],
+          "position": null,
+          "orgLeftDate": null
+        },
+        {
+          "organisationId": "012756293600911360616",
+          "approvedBy": null,
+          "channel": "apekx",
+          "updatedDate": null,
+          "approvaldate": null,
+          "isSystemUpload": false,
+          "isDeleted": false,
+          "id": "01326294083861708862",
+          "isApproved": false,
+          "orgjoindate": "2021-04-21 13:06:11:752+0000",
+          "isSelfDeclaration": true,
+          "updatedBy": null,
+          "orgName": "MPPS BATHUVA",
+          "addedByName": null,
+          "addedBy": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+          "associationType": 2,
+          "locationIds": [
+            "bc75cc99-9205-463e-a722-5326857838f8",
+            "8ac1efe9-0415-4313-89ef-884e1c8eee34",
+            "cb635528-0c07-49c7-94ff-2e64ccf7c1af"
+          ],
+          "orgLocation": [
+            {
+              "type": "state",
+              "id": "bc75cc99-9205-463e-a722-5326857838f8"
+            },
+            {
+              "type": "district",
+              "id": "8ac1efe9-0415-4313-89ef-884e1c8eee34"
+            },
+            {
+              "type": "block",
+              "id": "cb635528-0c07-49c7-94ff-2e64ccf7c1af"
+            }
+          ],
+          "externalId": "28110502802",
+          "userId": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+          "isSchool": true,
+          "hashTagId": "012756293600911360616",
+          "isSSO": false,
+          "isRejected": false,
+          "locations": [
+            {
+              "code": "28",
+              "name": "Andhra Pradesh",
+              "id": "bc75cc99-9205-463e-a722-5326857838f8",
+              "type": "state",
+              "parentId": null
+            },
+            {
+              "code": "2811",
+              "name": "SRIKAKULAM",
+              "id": "8ac1efe9-0415-4313-89ef-884e1c8eee34",
+              "type": "district",
+              "parentId": "bc75cc99-9205-463e-a722-5326857838f8"
+            },
+            {
+              "code": "281105",
+              "name": "G.SIGADAM",
+              "id": "cb635528-0c07-49c7-94ff-2e64ccf7c1af",
+              "type": "block",
+              "parentId": "8ac1efe9-0415-4313-89ef-884e1c8eee34"
+            }
+          ],
+          "position": null,
+          "orgLeftDate": null
+        }
+      ],
+      "provider": null,
+      "countryCode": "+91",
+      "tncLatestVersionUrl": "https://sunbirdstagingpublic.blob.core.windows.net/termsandcondtions/terms-and-conditions-v12.html",
+      "maskedEmail": "re******@tunerlabs.com",
+      "tempPassword": null,
+      "email": "re******@tunerlabs.com",
+      "rootOrg": {
+        "dateTime": null,
+        "preferredLanguage": null,
+        "keys": {},
+        "organisationSubType": null,
+        "channel": "dikshapreprodcustodian",
+        "approvedBy": null,
+        "description": "Pre-prod Custodian Organization",
+        "updatedDate": "2022-02-18 09:50:42:752+0000",
+        "organisationType": 5,
+        "addressId": null,
+        "orgType": null,
+        "isTenant": true,
+        "provider": null,
+        "locationId": null,
+        "orgCode": null,
+        "theme": null,
+        "id": "0126796199493140480",
+        "communityId": null,
+        "isApproved": null,
+        "isBoard": true,
+        "email": null,
+        "slug": "dikshapreprodcustodian",
+        "isSSOEnabled": null,
+        "thumbnail": null,
+        "orgName": "Staging Custodian Organization",
+        "updatedBy": null,
+        "locationIds": [
+          "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf",
+          "8250d58d-f1a2-4397-bfd3-b2e688ba7141"
+        ],
+        "externalId": "101010",
+        "orgLocation": [
+          {
+            "type": "state",
+            "id": "027f81d8-0a2c-4fc6-96ac-59fe4cea3abf"
+          },
+          {
+            "type": "district",
+            "id": "8250d58d-f1a2-4397-bfd3-b2e688ba7141"
+          }
+        ],
+        "isRootOrg": true,
+        "rootOrgId": "0126796199493140480",
+        "imgUrl": null,
+        "approvedDate": null,
+        "homeUrl": null,
+        "orgTypeId": null,
+        "isDefault": null,
+        "createdDate": "2019-01-18 09:48:13:428+0000",
+        "createdBy": "system",
+        "parentOrgId": null,
+        "hashTagId": "0126796199493140480",
+        "noOfMembers": null,
+        "status": 1
+      },
+      "phoneVerified": true,
+      "profileSummary": null,
+      "tcUpdatedDate": null,
+      "userLocations": [
+        {
+          "code": "2814",
+          "name": "EAST GODAVARI",
+          "id": "aecac7ab-15e4-45c9-ac7b-d716444cd652",
+          "type": "district",
+          "parentId": "bc75cc99-9205-463e-a722-5326857838f8"
+        },
+        {
+          "code": "28",
+          "name": "Andhra Pradesh",
+          "id": "bc75cc99-9205-463e-a722-5326857838f8",
+          "type": "state",
+          "parentId": null
+        },
+        {
+          "code": "281454",
+          "name": "AMALAPURAM",
+          "id": "f6d40b8a-3ba0-4e3b-b7f5-2586b69122f6",
+          "type": "block",
+          "parentId": "aecac7ab-15e4-45c9-ac7b-d716444cd652"
+        },
+        {
+          "code": "28110502802",
+          "name": "MPPS BATHUVA",
+          "id": "012756293600911360616",
+          "type": "school",
+          "parentId": ""
+        }
+      ],
+      "recoveryPhone": "",
+      "avatar": null,
+      "userName": "rejneeshr_pt83",
+      "userId": "44e4c0a0-e96c-4e3e-9294-33713aebdf70",
+      "userSubType": "hm",
+      "declarations": [
+        {
+          "persona": "default",
+          "errorType": null,
+          "orgId": "0126796199493140480",
+          "status": null,
+          "info": {}
+        },
+        {
+          "persona": "default",
+          "errorType": null,
+          "orgId": "do_2130569914095452161188",
+          "status": null,
+          "info": {}
+        }
+      ],
+      "promptTnC": true,
+      "emailVerified": true,
+      "lastLoginTime": 0,
+      "createdDate": "2021-01-13 08:47:58:140+0000",
+      "framework": {
+        "board": ["State (Andhra Pradesh"],
+        "id": ["ap_k-12_1"]
+      },
+      "createdBy": null,
+      "profileUserType": {
+        "subType": "hm",
+        "type": "administrator"
+      },
+      "encPhone": null,
+      "location": null,
+      "tncAcceptedVersion": "3.5.0"
+    }
+  }
+]

@@ -15,6 +15,7 @@ module.exports = function () {
   global.async = require("async");
   global.PROJECT_ROOT_DIRECTORY = path.join(__dirname, '..');
   global.MODULES_BASE_PATH = PROJECT_ROOT_DIRECTORY + "/module";
+  global.DB_QUERY_BASE_PATH = PROJECT_ROOT_DIRECTORY + "/databaseQueries";
   global.GENERICS_FILES_PATH = PROJECT_ROOT_DIRECTORY + "/generics";
   global.GENERIC_HELPERS_PATH = GENERICS_FILES_PATH + "/helpers";
   global._ = require("lodash");
@@ -75,6 +76,7 @@ module.exports = function () {
       global.schemas[name] = require(PROJECT_ROOT_DIRECTORY + '/models/' + file);
     }
   });
+  
 
   // All controllers
   global.controllers = requireAll({
