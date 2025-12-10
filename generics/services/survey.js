@@ -592,15 +592,17 @@ const listProgramsBasedOnIds = function ( programIds ) {
   * @name removeSolutionsFromProgram
   * @param {String} programId - Program id.
   * @param {Array} solutionIds - Array of solutions ids.
+  * @param {Boolean} checkProgramIdExists - check program id exists or not.
+  * @param {String} projectId - project id.
   * @returns {JSON} - updated program.
 */
 
-const removeSolutionsFromProgram = function ( token,programId,solutionIds ) {
+const removeSolutionsFromProgram = function ( token,programId,solutionIds,checkProgramIdExists,projectId ) {
     return new Promise(async (resolve, reject) => {
         try {
             
             const url = 
-            ASSESSMENT_URL + CONSTANTS.endpoints.REMOVE_SOLUTIONS_FROM_PROGRAM + "/" + programId;
+            ASSESSMENT_URL + CONSTANTS.endpoints.REMOVE_SOLUTIONS_FROM_PROGRAM + "/" + programId + "?checkProgramIdExists=" + checkProgramIdExists + "&projectId=" + projectId +"&referneceFrom=ml-project"+"&ts"+ Date.now();
 
             const options = {
                 headers : {

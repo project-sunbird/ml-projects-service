@@ -230,12 +230,14 @@ module.exports = class UserProjectsHelper {
                     }
 
                     if (solutionExists) {
-
+                        let checkProgramIdExists = data.programId ? true :false
                         let updateProgram =
                             await surveyService.removeSolutionsFromProgram(
                                 userToken,
                                 userProject[0].programInformation._id,
-                                [userProject[0].solutionInformation._id]
+                                [userProject[0].solutionInformation._id],
+                                checkProgramIdExists,
+                                projectId.toString(),
                             );
 
                         if (!updateProgram.success) {
@@ -361,7 +363,7 @@ module.exports = class UserProjectsHelper {
                 if ( data.status == CONSTANTS.common.COMPLETED_STATUS || data.status == CONSTANTS.common.SUBMITTED_STATUS ) {
                     updateProject.completedDate = new Date();
                 }
-                
+
                 let projectUpdated =
                     await projectQueries.findOneAndUpdate(
                         {
