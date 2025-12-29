@@ -27,6 +27,7 @@ const certificateTemplateQueries = require(DB_QUERY_BASE_PATH + "/certificateTem
 const certificateService = require(GENERICS_FILES_PATH + "/services/certificate");
 const certificateValidationsHelper = require(MODULES_BASE_PATH + "/certificateValidations/helper");
 const _ = require("lodash");  
+const programActivityLogHelper = require(MODULES_BASE_PATH + `/programActivityLogs/helper`)
 
 /**
     * UserProjectsHelper
@@ -383,6 +384,12 @@ module.exports = class UserProjectsHelper {
                 
                 //  push project details to kafka
                 await kafkaProducersHelper.pushProjectToKafka(projectUpdated);
+                if(projectUpdated.isAPrivateProgram != true){
+                    await programActivityLogHelper.addProgramActivityLog(
+                        projectUpdated.programId ?? projectUpdated.programInformation?._id,
+                        projectUpdated.solutionId
+                    )
+                }
             
                 return resolve({
                     success: true,
@@ -1323,6 +1330,12 @@ module.exports = class UserProjectsHelper {
                     }
 
                     await kafkaProducersHelper.pushProjectToKafka(project);
+                    if(projectCreation.data.isAPrivateProgram != true){
+                        await programActivityLogHelper.addProgramActivityLog(
+                            projectCreation.data.programId,
+                            projectCreation.data.solutionId
+                        )
+                    }
                     
                     projectId = project._id;
                 }
@@ -1655,6 +1668,12 @@ module.exports = class UserProjectsHelper {
                 );
                 
                 await kafkaProducersHelper.pushProjectToKafka(userProject);
+                if(userProject.isAPrivateProgram != true){
+                    await programActivityLogHelper.addProgramActivityLog(
+                        userProject.programInformation._id ?? data.programId,
+                        userProject.solutionId
+                    )
+                }
 
                 if (!userProject._id) {
                     throw {
@@ -2337,6 +2356,12 @@ module.exports = class UserProjectsHelper {
                 }
                 
                 await kafkaProducersHelper.pushProjectToKafka(projectCreation);
+                if(projectCreation.isAPrivateProgram != true){
+                    await programActivityLogHelper.addProgramActivityLog(
+                        libraryProjects.data.programId,
+                        libraryProjects.data.solutionId
+                    )
+                }
 
                 if (requestedData.rating && requestedData.rating > 0) {
                     await projectTemplatesHelper.ratings(
@@ -2688,6 +2713,12 @@ module.exports = class UserProjectsHelper {
                     }
                 }
                 await kafkaProducersHelper.pushProjectToKafka(projectDetails);
+                if(projectDetails.isAPrivateProgram != true){
+                    await programActivityLogHelper.addProgramActivityLog(
+                        projectDetails.programId,
+                        projectDetails.solutionId
+                    )
+                }
                 return resolve({ 
                     success: true,
                     message: CONSTANTS.apiResponses.PROJECT_CERTIFICATE_GENERATED,

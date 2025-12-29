@@ -357,8 +357,25 @@ function operatorValidation(valueLhs, valueRhs, operator) {
         result = (valueLhs >= valueRhs) ? true : false
       } 
       return resolve(result)
-  })          
+  })
 }
+
+  /**
+   * Convert string to mongodb object id.
+   * @method
+   * @name convertStringToObjectId
+   * @param id - string id
+   * @returns {ObjectId} - returns objectId
+   */
+
+  function convertStringToObjectId(id) {
+    let checkWhetherIdIsValidMongoId = this.isValidMongoId(id)
+    if (checkWhetherIdIsValidMongoId) {
+      id = ObjectId(id)
+    }
+
+    return id
+  }
 
 module.exports = {
   camelCaseToTitleCase : camelCaseToTitleCase,
@@ -376,5 +393,6 @@ module.exports = {
   checkValidUUID : checkValidUUID,
   createComparableDates : createComparableDates,
   noOfElementsInArray : noOfElementsInArray,
-  operatorValidation : operatorValidation
+  operatorValidation : operatorValidation,
+  convertStringToObjectId : convertStringToObjectId
 };
