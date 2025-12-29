@@ -2544,8 +2544,7 @@ module.exports = class UserProjectsHelper {
                     recipient : {
                         id : data.userId,
                         name : certificateUserName,
-                        type : data.userProfile.profileUserType.type,
-                        userLocations : data.userProfile.userLocations
+                        type : data.userProfile.profileUserType.type
                     },
                     templateUrl : data.certificate.templateUrl,
                     issuer : certificateTemplateDetails[0].issuer,
