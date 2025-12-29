@@ -106,7 +106,7 @@ module.exports = class ProjectTemplatesHelper {
                 let recommendedFor = {};
 
                 if( roleIds.length > 0 ) {
-
+                    roleIds = UTILS.normalizeToLower(roleIds)
                     let userRolesData = 
                     await coreService.rolesDocuments({
                         code : { $in : roleIds }
