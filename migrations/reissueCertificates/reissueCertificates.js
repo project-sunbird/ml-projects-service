@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 const fs = require("fs")
 const path = require('path');
 const { ObjectId } = require('mongodb');
-const axios = require('axios');
 const UTILS = require("../../generics/helpers/utils");
+const request = require('request');
+
 
 
 require('dotenv').config({
@@ -11,11 +12,34 @@ require('dotenv').config({
 });
 
 const MONGODB_URL = process.env.MONGODB_URL;
+
 // --------------------
-// Read input.json
+// Read input file
 // --------------------
-const inputFilePath = path.resolve(__dirname, 'input.json');
-const inputData = JSON.parse(fs.readFileSync(inputFilePath, 'utf-8'));
+function getInputFileFromArgs() {
+    const inputArg = process.argv.find(arg => arg.startsWith('--inputFile='));
+  
+    if (!inputArg) {
+      console.error('❌ Missing --inputFile argument');
+      console.error('👉 Usage: node script.js --inputFile=input.json');
+      process.exit(1);
+    }
+  
+    return inputArg.split('=')[1];
+}
+
+const inputFileName = getInputFileFromArgs();
+
+const inputFilePath = path.resolve(__dirname, inputFileName);
+
+if (!fs.existsSync(inputFilePath)) {
+  console.error(`❌ Input file not found: ${inputFilePath}`);
+  process.exit(1);
+}
+
+const inputData = JSON.parse(
+  fs.readFileSync(inputFilePath, 'utf-8')
+);
 const batchSize = 100
 
 const {
@@ -74,10 +98,14 @@ async function fetchProjectsFromDB(projectIds) {
         .filter(id => ObjectId.isValid(id))
         .map(id => new ObjectId(id));
 
-    if (!batch.length) continue;
+        if (!batch.length) continue;
         const projects = await projectsCollection
           .find(
-            { _id: { $in: batch } }
+            { 
+                _id: { $in: batch },
+                status: "submitted",
+                certificate: { $exists: true }
+            }
           )
           .toArray();
     
@@ -398,13 +426,18 @@ async function updateEligibleProjects(
     }
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-
     const updatedProjectsFilePath = path.resolve(
       __dirname,
       `updatedProjects-${timestamp}.txt`
     );
     fs.writeFileSync(updatedProjectsFilePath, '', { flag: 'w' });
 
+    const nonUpdatedProjectsFilePath = path.resolve(
+        __dirname,
+        `nonEligibleProjects-${timestamp}.txt`
+      );
+    fs.writeFileSync(nonUpdatedProjectsFilePath, '', { flag: 'w' });
+  
       
     const projectsCollection = mongoose.connection.collection('projects');
   
@@ -412,6 +445,27 @@ async function updateEligibleProjects(
     const eligibleProjects = Object.values(projectDataMap).filter(
       project => project.eligible === true
     );
+
+    // filter non eligible projects
+    const nonEligibleProjects = Object.values(projectDataMap).filter(
+        project => project.eligible === false
+    );
+
+    // write non-eligible project IDs to file
+    if (nonEligibleProjects.length) {
+        const dataToWrite =
+        nonEligibleProjects
+            .map(project => project.projectId)
+            .join('\n') + '\n';
+    
+        fs.appendFileSync(nonUpdatedProjectsFilePath, dataToWrite);
+    
+        console.log(
+        `📄 Non-eligible project IDs written to ${nonUpdatedProjectsFilePath}`
+        );
+    } else {
+        console.log('✅ No non-eligible projects found');
+    }
   
     if (!eligibleProjects.length) {
       console.log('No eligible projects to update');
@@ -432,6 +486,7 @@ async function updateEligibleProjects(
                 tasks: project.tasks,
                 'certificate.eligible': true,
                 updatedAt: new Date(),
+                isMigratedDueToReportIssue: true
               },
             },
           },
@@ -457,9 +512,31 @@ async function updateEligibleProjects(
       );
     }
 }
+
+function requestPromise(options) {
+    return new Promise((resolve, reject) => {
+      request(options, (error, response, body) => {
+        if (error) {
+          return reject(error);
+        }
+  
+        const statusCode = response? response.statusCode : 500
+  
+        if (statusCode >= 200 && statusCode < 300) {
+          return resolve(body);
+        }
+  
+        reject({
+          statusCode,
+          body,
+        });
+      });
+    });
+  }
+  
   
 
-async function fetchApiResponsesForEligibleProjects(projectDataMap) {
+async function reIssueCertificates(projectDataMap) {
     if(!writeMode){
         console.log("WriteMode disabled. Skipped reissuing certificates");
         return;
@@ -477,29 +554,26 @@ async function fetchApiResponsesForEligibleProjects(projectDataMap) {
     for (const project of Object.values(projectDataMap)) {
       if (project.eligible !== true) continue;
       try {
-        // 🔁 Adjust endpoint as required
-        const response = await axios.post(
-          `${projectServiceBaseUrl}/userProjects/certificateReIssue/${project.projectId}`,
-          {
+        const responseBody = await requestPromise({
+            method: 'POST',
+            url: `${projectServiceBaseUrl}/userProjects/certificateReIssue/${project.projectId}`,
             headers: {
               'x-authenticated-user-token': userToken,
               'Content-Type': 'application/json',
             },
-          }
-        );
-  
+            json: true, // auto parses JSON response
+          });
+      
         apiResponses[project.projectId] = {
-          success: true,
-          response: response.data,
+            success: true,
+            response: responseBody? responseBody : null,
         };
   
         console.log(`✅ API success for project ${project.projectId}`);
       } catch (error) {
         apiResponses[project.projectId] = {
           success: false,
-          error: error.response
-            ? error.response.data
-            : error.message,
+          error: error.body || error.message
         };
   
         console.error(`❌ API failed for project ${project.projectId}`);
@@ -615,12 +689,10 @@ async function runMigration() {
         projectDataMap,
         writeMode
     );
-      
-    await fetchApiResponsesForEligibleProjects(projectDataMap);
-      
-    // console.log(projectDataMap)
-
-
+    
+    // reissue certificates
+    await reIssueCertificates(projectDataMap);
+    
   } catch (error) {
     console.error('❌ Migration aborted');
     process.exit(1);

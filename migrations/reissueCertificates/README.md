@@ -76,12 +76,13 @@ MONGODB_URL=mongodb://localhost:27017/<db-name>
 
 The migration script depends on the following npm packages.
 
-### 1️⃣ Install dependencies
-
-From the **project root**:
-
-```bash
-npm install mongoose dotenv axios mongodb
+```
+mongoose
+mongodb
+fs
+path
+request
+dotenv
 ```
 
 ---
@@ -91,7 +92,7 @@ npm install mongoose dotenv axios mongodb
 Run the script **from the project root**:
 
 ```bash
-node migrations/reissueCertificates/reissueCertificates.js
+node migrations/reissueCertificates/reissueCertificates.js --inputFile=input.json
 ```
 
 ---

@@ -1,0 +1,8 @@
+{
+    "userToken" : "<---token--->",
+    "projectServiceBaseUrl" : "http://localhost:5000",
+    "writeMode" : true,
+    "projectIds" : [
+        "695d65c007e87229bc11f05c"
+    ]
+}
