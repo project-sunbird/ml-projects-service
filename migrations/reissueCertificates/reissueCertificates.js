@@ -18,6 +18,7 @@ const MONGODB_URL = process.env.MONGODB_URL;
 // --------------------
 function getInputFileFromArgs() {
     const inputArg = process.argv.find(arg => arg.startsWith('--inputFile='));
+    const batchSizeArg = process.argv.find(arg => arg.startsWith('--batchSize='));
   
     if (!inputArg) {
       console.error('❌ Missing --inputFile argument');
@@ -25,32 +26,80 @@ function getInputFileFromArgs() {
       process.exit(1);
     }
   
-    return inputArg.split('=')[1];
+    const inputFile = inputArg.split('=')[1];
+
+    let batchSize = 100; // default
+
+    if (batchSizeArg) {
+      const parsed = parseInt(batchSizeArg.split('=')[1], 10);
+
+      if (Number.isInteger(parsed) && parsed > 0) {
+        batchSize = parsed;
+      } else {
+        console.warn(
+          `⚠️ Invalid batchSize provided. Falling back to default (${batchSize})`
+        );
+      }
+    }
+
+    return {
+      inputFile,
+      batchSize
+    };
 }
 
-const inputFileName = getInputFileFromArgs();
+const {inputFile , batchSize} = getInputFileFromArgs();
 
-const inputFilePath = path.resolve(__dirname, inputFileName);
+const inputFilePath = path.resolve(__dirname, inputFile);
 
 if (!fs.existsSync(inputFilePath)) {
   console.error(`❌ Input file not found: ${inputFilePath}`);
   process.exit(1);
-}
+};
 
 const inputData = JSON.parse(
   fs.readFileSync(inputFilePath, 'utf-8')
 );
-const batchSize = 100
+let solutions = [];
+let corruptedProjects = {};
+let validProjectPerSolution = {};
+
+(inputData.summary || []).forEach(item => {
+  if (item.componentId && !solutions.includes(item.componentId)) {
+    solutions.push(item.componentId);
+    corruptedProjects[item.componentId] = item.projectsCreatedDueToBug;
+  }
+});
 
 const {
   userToken,
   projectServiceBaseUrl,
-  writeMode,
-  projectIds,
+  writeMode
 } = inputData;
 
-const projectDataMap = {};
-const referenceProjectMap = {};
+
+const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+
+const eligibleFilePath = path.resolve(
+  __dirname,
+  `eligibleProjects-${timestamp}.txt`
+);
+
+const nonEligibleFilePath = path.resolve(
+  __dirname,
+  `nonEligibleProjects-${timestamp}.txt`
+);
+
+const apiResponsesFilePath = path.resolve(
+  __dirname,
+  `certificateReissueApiResponses-${timestamp}.json`
+);
+
+// Create empty files (overwrite if they somehow exist)
+fs.writeFileSync(eligibleFilePath, '', { flag: 'w' });
+fs.writeFileSync(nonEligibleFilePath, '', { flag: 'w' });
+fs.writeFileSync(apiResponsesFilePath, '', { flag: 'w' });
+
 
 // --------------------
 // MongoDB connection
@@ -89,49 +138,45 @@ function chunkArray(array) {
 async function fetchProjectsFromDB(projectIds) {
   
     const projectsCollection = mongoose.connection.collection('projects');
-    const results = [];
+    projectIds = projectIds.filter(id => ObjectId.isValid(id))
+                            .map(id => new ObjectId(id));
+    if (!projectIds.length) return [];
 
-    const batches = chunkArray(projectIds);
+    const projects = await projectsCollection
+      .find(
+        { 
+            _id: { $in: projectIds },
+            status: "submitted",
+            certificate: { $exists: true }
+        },
+        {
+          projection : {
+            _id : 1,
+            certificate : 1,
+            status : 1,
+            solutionId : 1,
+            tasks : 1,
+            attachments : 1
+          }
+        }
+      )
+      .toArray();
   
-    for (let i = 0; i < batches.length; i++) {
-        const batch = batches[i]
-        .filter(id => ObjectId.isValid(id))
-        .map(id => new ObjectId(id));
-
-        if (!batch.length) continue;
-        const projects = await projectsCollection
-          .find(
-            { 
-                _id: { $in: batch },
-                status: "submitted",
-                certificate: { $exists: true }
-            }
-          )
-          .toArray();
-    
-        results.push(...projects);    
-        console.log(`📦 Batch ${i + 1}/${batches.length} fetched (${projects.length} projects)`);
-      }
-  
-    return results;
+    return projects;
   }
 
 
 // ------------------------
-// Fetch referene projects
+// Fetch valid projects
 // ------------------------
-async function fetchReferenceProjectsInBatches(solutionIds) {
+async function fetchValidProjectsFromDB(solutions) {
     const projectsCollection = mongoose.connection.collection('projects');
-    const results = [];
-
-    const batches = chunkArray(solutionIds);
-    for (let i = 0; i < batches.length; i++) {
-        const batch = batches[i]
-
-        const referenceProjects = await projectsCollection
-        .find(
+    solutions = solutions.filter(id => ObjectId.isValid(id));
+    for (let i = 0; i < solutions.length; i++) {
+        const validProject = await projectsCollection
+        .findOne(
             {
-                solutionId: { $in: batch },
+                solutionId: solutions[i],
                 isAPrivateProgram: false,
                 isMigratedDueToReportIssue: { $exists: false },
             },
@@ -142,105 +187,98 @@ async function fetchReferenceProjectsInBatches(solutionIds) {
                     tasks: 1
                 },
             }
-        )
-        .toArray();
-
-        results.push(...referenceProjects);
-
-        console.log(`📦 Reference batch ${i + 1}/${batches.length} fetched (${referenceProjects.length})`);
+        );
+        validProjectPerSolution[solutions[i]] = validProject;
     }
-
-    return results;
 }
 
 
-function updateTasksUsingReferenceProject(projectDataMap) {
-    for (const projectId of Object.keys(projectDataMap)) {
-      const project = projectDataMap[projectId];
-      const referenceProject = project.referenceProject;
-  
-      // Validate reference project and tasks
-      if (
-        !referenceProject ||
-        !Array.isArray(referenceProject.tasks) ||
-        referenceProject.tasks.length === 0 ||
-        !Array.isArray(project.tasks)
-      ) {
-        continue;
-      }
-  
-      // Loop through reference project tasks
-      for (const refTask of referenceProject.tasks) {
-        if (!refTask || !refTask.externalId) continue;
+function updateTasksUsingValidProject(projects, solutionId) {
+  const validProject = validProjectPerSolution[solutionId];
+  if (
+    !validProject ||
+    !Array.isArray(validProject.tasks) ||
+    validProject.tasks.length === 0
+  ) {
+    return;
+  }
+  const referenceTasks = validProject.tasks;
 
-        // Prefix-based match
-        const lastDashIndex = refTask.externalId.lastIndexOf('-');
+  for (const project of projects) {
+    if (!project || !Array.isArray(project.tasks)) continue;
 
-        if (lastDashIndex > -1) {
-            const prefix = refTask.externalId.substring(0, lastDashIndex);
-            // Loop through migrated project tasks
-            for (const task of project.tasks) {
-                if (!task || !task.externalId) continue;    
-    
-                if (task.externalId.startsWith(prefix)) {
-                    task.referenceId = refTask.referenceId;
-                    task.externalId = refTask.externalId;
-                    break;
-                }
-            }
+    // Loop through reference project tasks
+    for (const refTask of referenceTasks) {
+      if (!refTask || !refTask.externalId) continue;
+
+      const lastDashIndex = refTask.externalId.lastIndexOf('-');
+      if (lastDashIndex === -1) continue;
+
+      const prefix = refTask.externalId.substring(0, lastDashIndex);
+
+      // Loop through current project tasks
+      for (const task of project.tasks) {
+        if (!task || !task.externalId) continue;
+
+        if (task.externalId.startsWith(prefix)) {
+          task.referenceId = refTask.referenceId;
+          task.externalId = refTask.externalId;
+          break; // stop after first match
         }
       }
     }
   }
-
-async function updateProjectsWithTasks(
-    projectDataMap,
-    writeMode = false
-  ) {
-    if(!writeMode){
-        console.log('WriteMode disbaled - skipped DB update')
-        return;
-    }
-
-    const projectsCollection = mongoose.connection.collection('projects');
-  
-    const projectEntries = Object.values(projectDataMap);
-  
-    const batches = [];
-    for (let i = 0; i < projectEntries.length; i += batchSize) {
-      batches.push(projectEntries.slice(i, i + batchSize));
-    }
-  
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i];
-      const bulkOps = [];
-  
-      for (const project of batch) {
-        bulkOps.push({
-          updateOne: {
-            filter: { _id: new ObjectId(project.projectId) },
-            update: {
-              $set: { tasks: project.tasks },
-            },
-          },
-        });
-      }
-  
-      if (!bulkOps.length) continue;
-   
-      const result = await projectsCollection.bulkWrite(bulkOps, {
-        ordered: false,
-      });
-  
-      console.log(
-        `Tasks Update:- Batch ${i + 1}/${batches.length} updated`,
-        {
-          matched: result.matchedCount,
-          modified: result.modifiedCount,
-        }
-      );
-    }
 }
+
+
+async function updateProjectsWithTasks(projects) {
+  if (!writeMode) {
+    console.log('WriteMode disabled - skipped DB update');
+    return;
+  }
+
+  if (!Array.isArray(projects) || !projects.length) {
+    return;
+  }
+
+  const projectsCollection = mongoose.connection.collection('projects');
+
+  const bulkOps = [];
+
+  for (const project of projects) {
+    if (
+      !project ||
+      !project._id ||
+      !Array.isArray(project.tasks)
+    ) {
+      continue;
+    }
+
+    bulkOps.push({
+      updateOne: {
+        filter: { _id: project._id },
+        update: {
+          $set: { tasks: project.tasks, isMigratedDueToReportIssue: true }
+        }
+      }
+    });
+  }
+
+  if (!bulkOps.length) {
+    console.log('No valid projects found for update');
+    return;
+  }
+
+  const result = await projectsCollection.bulkWrite(bulkOps, {
+    ordered: false
+  });
+
+  console.log({
+    matched: result.matchedCount,
+    modified: result.modifiedCount
+  });
+}
+
 
 
 async function criteriaValidation(data) {
@@ -416,185 +454,165 @@ function _criteriaExpressionValidation(expression, keys, result) {
 // ------------------------
 // Update eligible projects
 // ------------------------
-async function updateEligibleProjects(
-    projectDataMap,
-    writeMode = false
-  ) {
-    if(!writeMode){
-        console.log('WriteMode disbaled - skipped DB update')
-        return;
-    }
+async function updateEligibleProjects(projects) {
+  if (!writeMode) {
+    console.log('WriteMode disabled - skipped DB update');
+    return;
+  }
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-    const updatedProjectsFilePath = path.resolve(
-      __dirname,
-      `updatedProjects-${timestamp}.txt`
-    );
-    fs.writeFileSync(updatedProjectsFilePath, '', { flag: 'w' });
+  if (!Array.isArray(projects) || projects.length === 0) {
+    console.log('No projects to update eligibility');
+    return;
+  }
 
-    const nonUpdatedProjectsFilePath = path.resolve(
-        __dirname,
-        `nonEligibleProjects-${timestamp}.txt`
-      );
-    fs.writeFileSync(nonUpdatedProjectsFilePath, '', { flag: 'w' });
-  
-      
-    const projectsCollection = mongoose.connection.collection('projects');
-  
-    // filter only eligible projects
-    const eligibleProjects = Object.values(projectDataMap).filter(
-      project => project.eligible === true
-    );
+  const projectsCollection = mongoose.connection.collection('projects');
 
-    // filter non eligible projects
-    const nonEligibleProjects = Object.values(projectDataMap).filter(
-        project => project.eligible === false
-    );
+  const bulkOps = [];
+  const eligibleIds = [];
+  const nonEligibleIds = [];
 
-    // write non-eligible project IDs to file
-    if (nonEligibleProjects.length) {
-        const dataToWrite =
-        nonEligibleProjects
-            .map(project => project.projectId)
-            .join('\n') + '\n';
-    
-        fs.appendFileSync(nonUpdatedProjectsFilePath, dataToWrite);
-    
-        console.log(
-        `📄 Non-eligible project IDs written to ${nonUpdatedProjectsFilePath}`
-        );
-    } else {
-        console.log('✅ No non-eligible projects found');
-    }
-  
-    if (!eligibleProjects.length) {
-      console.log('No eligible projects to update');
-      return;
-    }
-  
-    // create batches
-    for (let i = 0; i < eligibleProjects.length; i += batchSize) {
-      const batch = eligibleProjects.slice(i, i + batchSize);
-      const bulkOps = [];
-  
-      for (const project of batch) {
-        bulkOps.push({
-          updateOne: {
-            filter: { _id: new ObjectId(project.projectId) },
-            update: {
-              $set: {
-                tasks: project.tasks,
-                'certificate.eligible': true,
-                updatedAt: new Date(),
-                isMigratedDueToReportIssue: true
-              },
-            },
-          },
-        });
-      }
-  
-      const result = await projectsCollection.bulkWrite(bulkOps, {
-        ordered: false,
-      });
+  for (const project of projects) {
+    if (!project || !project._id) continue;
 
-    // ✅ Append updated projectIds to file
-    const projectIdsToWrite = batch
-    .map(project => project.projectId)
-    .join('\n') + '\n';
+    const projectId = project._id.toString();
 
-    fs.appendFileSync(updatedProjectsFilePath, projectIdsToWrite);
-    console.log(`📄 Updated projects written to ${updatedProjectsFilePath}`);
-  
-      console.log(`Eligibility Update:- Batch ${Math.floor(i / batchSize) + 1} updated`,{
-          matched: result.matchedCount,
-          modified: result.modifiedCount,
+    if (project.eligible === true) {
+      eligibleIds.push(projectId);
+
+      bulkOps.push({
+        updateOne: {
+          filter: { _id: project._id },
+          update: {
+            $set: { "certificate.eligible": true }
+          }
         }
-      );
+      });
+    } else {
+      nonEligibleIds.push(projectId);
     }
+  }
+
+  // Append projectIds to files (NOT overwrite)
+  if (eligibleIds.length) {
+    fs.appendFileSync(
+      eligibleFilePath,
+      eligibleIds.join('\n') + '\n',
+      'utf8'
+    );
+  }
+
+  if (nonEligibleIds.length) {
+    fs.appendFileSync(
+      nonEligibleFilePath,
+      nonEligibleIds.join('\n') + '\n',
+      'utf8'
+    );
+  }
+
+
+  if (!bulkOps.length) {
+    console.log('No eligible projects found to update');
+    return;
+  }
+
+  const result = await projectsCollection.bulkWrite(bulkOps, {
+    ordered: false
+  });
+
+  console.log({
+    eligibleUpdated: result.modifiedCount
+  });
 }
+
 
 function requestPromise(options) {
-    return new Promise((resolve, reject) => {
-      request(options, (error, response, body) => {
-        if (error) {
-          return reject(error);
-        }
-  
-        const statusCode = response? response.statusCode : 500
-  
-        if (statusCode >= 200 && statusCode < 300) {
-          return resolve(body);
-        }
-  
-        reject({
-          statusCode,
-          body,
+  return new Promise((resolve, reject) => {
+    request(options, (error, response, body) => {
+      if (error) {
+        return reject({
+          message: error.message,
+          error
         });
+      }
+
+      const statusCode = response ? response.statusCode : 500;
+
+      if (statusCode >= 200 && statusCode < 300) {
+        return resolve(body);
+      }
+
+      reject({
+        statusCode,
+        body
       });
     });
+  });
+}
+
+  
+  
+async function reIssueCertificates(projects) {
+  if (!writeMode) {
+    console.log("WriteMode disabled. Skipped reissuing certificates");
+    return;
+  }
+
+  if (!Array.isArray(projects) || projects.length === 0) {
+    console.log("No projects provided for certificate reissue");
+    return;
+  }
+
+  const apiResponses = {};
+
+  for (const project of projects) {
+    if (project.eligible !== true) continue;
+
+    const projectId = project._id.toString();
+
+    try {
+      const responseBody = await requestPromise({
+        method: 'POST',
+        url: `${projectServiceBaseUrl}/userProjects/certificateReIssue/${projectId}`,
+        headers: {
+          'x-authenticated-user-token': userToken
+        },
+        json: true
+      });
+
+      apiResponses[projectId] = responseBody ?? null
+
+      console.log(`✅ API success for project ${projectId}`);
+    } catch (error) {
+      apiResponses[projectId] = {
+        success: false,
+        statusCode: error.statusCode || 500,
+        error: error.body || error.message || 'Unknown error'
+      };
+
+      console.error(`❌ API failed for project ${projectId}`);
+    }
+  }
+
+  let existing = [];
+
+  if (fs.existsSync(apiResponsesFilePath)) {
+    const content = fs.readFileSync(apiResponsesFilePath, 'utf-8').trim();
+    if (content) {
+      existing = JSON.parse(content);
+    }
   }
   
+  existing.push(apiResponses);
   
+  fs.writeFileSync(
+    apiResponsesFilePath,
+    JSON.stringify(existing, null, 2),
+    'utf-8'
+  );
 
-async function reIssueCertificates(projectDataMap) {
-    if(!writeMode){
-        console.log("WriteMode disabled. Skipped reissuing certificates");
-        return;
-    }
-
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-
-    const apiResponsesFilePath = path.resolve(
-      __dirname,
-      `apiResponses-${timestamp}.json`
-    );
-  
-    const apiResponses = {};
-  
-    for (const project of Object.values(projectDataMap)) {
-      if (project.eligible !== true) continue;
-      try {
-        const responseBody = await requestPromise({
-            method: 'POST',
-            url: `${projectServiceBaseUrl}/userProjects/certificateReIssue/${project.projectId}`,
-            headers: {
-              'x-authenticated-user-token': userToken,
-              'Content-Type': 'application/json',
-            },
-            json: true, // auto parses JSON response
-          });
-      
-        apiResponses[project.projectId] = {
-            success: true,
-            response: responseBody? responseBody : null,
-        };
-  
-        console.log(`✅ API success for project ${project.projectId}`);
-      } catch (error) {
-        apiResponses[project.projectId] = {
-          success: false,
-          error: error.body || error.message
-        };
-  
-        console.error(`❌ API failed for project ${project.projectId}`);
-      }
-    }
-  
-    // write responses to file
-    if (writeMode) {
-      fs.writeFileSync(
-        apiResponsesFilePath,
-        JSON.stringify(apiResponses, null, 2),
-        'utf-8'
-      );
-  
-      console.log(`📄 API responses written to ${apiResponsesFilePath}`);
-    } else {
-      console.log('🧪 Dry run — API responses not written to file');
-    }
-  
-    return apiResponses;
+  console.log(`📄 API responses written to ${apiResponsesFilePath}`);
 }
+
   
 
 
@@ -604,94 +622,52 @@ async function runMigration() {
     // Check MongoDB connectivity
     await connectDB();
 
-    //migration logic
-    const projects = await fetchProjectsFromDB(projectIds);
+    // fetch validProjects per solution
+    await fetchValidProjectsFromDB(solutions)
 
-    // add projects data to projectDataMap fo future reference
-    for (const project of projects) {
-        // Skip projects without certificate
-        if (!project.certificate) {
-          continue;
-        }
-      
-        projectDataMap[project._id.toString()] = {
-          projectId: project._id.toString(),
-          solutionId: project.solutionId || null,
-          tasks: project.tasks || [],
-          certificate: project.certificate,
-          attachments: project.attachments,
-          status: project.status
-        };
+    for (const [solutionId, projectIds] of Object.entries(corruptedProjects)) {
+      console.log(`Processing component: ${solutionId}`);
+      if(!validProjectPerSolution[solutionId]){
+        console.log("No valid project found for solutionId", solutionId);
+        continue;
       }
-    console.log('📦 Project data fetched successfully');
+      const batches = chunkArray(projectIds);
+  
+      for (const batch of batches) {
 
-    // gather unique solutionIds
-    const solutionIds = [...new Set(
-        Object.values(projectDataMap)
-          .map(p => p.solutionId)
-          .filter(Boolean)
-    )];
+        //migration logic
+        const projects = await fetchProjectsFromDB(batch);
 
-    // fetch valid reference projects 
-    const referenceProjects = await fetchReferenceProjectsInBatches(solutionIds);
-    for (const ref of referenceProjects) {
-        // pick first one if multiple exist for same solutionId
-        if (!referenceProjectMap[ref.solutionId]) {
-          referenceProjectMap[ref.solutionId] = {
-            projectId: ref._id.toString(),
-            solutionId: ref.solutionId,
-            tasks: ref.tasks
-          };
-        }
-    }
+        // update tasks using reference projects
+        updateTasksUsingValidProject(projects, solutionId);
 
-    // attach reference project to projectDataMap
-    for (const projectId of Object.keys(projectDataMap)) {
-        const solutionId = projectDataMap[projectId].solutionId;      
-        projectDataMap[projectId].referenceProject = referenceProjectMap[solutionId] || null;
-    }
+        // persist changes to DB
+        await updateProjectsWithTasks(projects);
 
-    // remove projects who dont have a referenceProject
-    for (const projectId of Object.keys(projectDataMap)) {
-        if (!projectDataMap[projectId].referenceProject) {
-          delete projectDataMap[projectId];
-        }
-    }      
-      
-    // update tasks using reference projects
-    updateTasksUsingReferenceProject(projectDataMap);
-    // persist changes to DB
-    await updateProjectsWithTasks(projectDataMap, writeMode);
-    console.log('✅ Task referenceIds updated successfully');
-
-    // check project's eligibility
-    for (const projectId of Object.keys(projectDataMap)) {
-        const project = projectDataMap[projectId];
-        
-        try {
+        // check project's eligibility
+        for (const project of projects) {
+          try {
             const validationResult = await criteriaValidation(project);
-            
-            projectDataMap[projectId].eligible =
-            validationResult && validationResult.success === true;
-        } catch (error) {
-            // If validation fails unexpectedly, mark as not eligible
-          projectDataMap[projectId].eligible = false;
-          
-          console.error(
-              `❌ Criteria validation failed for project ${projectId}`,
+        
+            project.eligible = validationResult && validationResult.success === true;
+          } catch (error) {
+            project.eligible = false;
+        
+            console.error(
+              `❌ Criteria validation failed for project ${project._id.toString()}`,
               error.message || error
             );
-        }
-    }
+          }
+        }        
+        // update eligible projects
+        await updateEligibleProjects(
+          projects
+        );
 
-    // update eligible projects
-    await updateEligibleProjects(
-        projectDataMap,
-        writeMode
-    );
-    
-    // reissue certificates
-    await reIssueCertificates(projectDataMap);
+        // reissue certificates
+        await reIssueCertificates(projects);
+      }
+    }    
     
   } catch (error) {
     console.error('❌ Migration aborted');
