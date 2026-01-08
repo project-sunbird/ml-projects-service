@@ -92,7 +92,7 @@ dotenv
 Run the script **from the project root**:
 
 ```bash
-node migrations/reissueCertificates/reissueCertificates.js --inputFile=input.json --batchSize=100
+node migrations/reissueCertificates/reissueCertificates.js --inputFile=input.json
 ```
 
 ---
