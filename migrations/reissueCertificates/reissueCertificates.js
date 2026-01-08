@@ -187,13 +187,14 @@ function updateNonProcessedFile(updaterFn) {
 async function fetchValidProjectsFromDB(solutions) {
     const projectsCollection = mongoose.connection.collection('projects');
     const validSolutions = solutions.filter(id => ObjectId.isValid(id));
+    const validSolutionObjectIds = validSolutions.map(id => new ObjectId(id));
     if (!validSolutions.length) return;
 
     // fetch all matching projects at once
     const projects = await projectsCollection.aggregate([
       {
         $match: {
-          solutionId: { $in: validSolutions },
+          solutionId: { $in: validSolutionObjectIds },
           isAPrivateProgram: false,
           isMigratedDueToReportIssue: { $exists: false }
         }
@@ -242,7 +243,7 @@ function updateTasksUsingValidProject(projects, solutionId) {
 
     // Loop through reference project tasks
     for (const refTask of referenceTasks) {
-      if (!refTask || !refTask.externalId) continue;
+      if (!refTask || !refTask.externalId || !refTask.referenceId) continue;
 
       const lastDashIndex = refTask.externalId.lastIndexOf('-');
       if (lastDashIndex === -1) continue;
@@ -438,11 +439,6 @@ function _criteriaExpressionValidation(expression, keys, result) {
 // Update projects in DB
 // ------------------------
 async function updateCorruptedProjectsInDB(projects) {
-
-  if (!Array.isArray(projects) || projects.length === 0) {
-    console.log('No projects to update in DB');
-    return;
-  }
 
   const projectsCollection = mongoose.connection.collection('projects');
 
