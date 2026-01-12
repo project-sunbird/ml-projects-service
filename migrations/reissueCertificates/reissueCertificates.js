@@ -573,7 +573,11 @@ async function reIssueCertificates(projects) {
         json: true
       });
 
-      apiResponses[projectId] = responseBody ?? null
+      apiResponses[projectId] =
+      responseBody !== undefined && responseBody !== null
+        ? responseBody
+        : null;
+    
 
       console.log(`✅ API success for project ${projectId}`);
     } catch (error) {
