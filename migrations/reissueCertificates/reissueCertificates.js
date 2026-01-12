@@ -209,8 +209,7 @@ async function fetchValidProjectsFromDB(solutions) {
     ]).toArray();
 
     for (const solutionId of validSolutions) {
-      const validProject =
-        projects.find(p => p.solutionId === solutionId) || null;
+      const validProject = projects.find(p => p.solutionId.toString() === solutionId.toString()) || null;
 
       // same assignment as before
       validProjectPerSolution[solutionId] = validProject;
