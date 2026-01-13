@@ -1,7 +1,6 @@
-const mongoose = require('mongoose');
 const fs = require("fs")
 const path = require('path');
-const { ObjectId } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const UTILS = require("../../generics/helpers/utils");
 const request = require('request');
 const _ = require('lodash');
@@ -12,6 +11,8 @@ require('dotenv').config({
 });
 
 const MONGODB_URL = process.env.MONGODB_URL;
+let connect;
+let DB;
 
 // --------------------
 // Read input file
@@ -120,10 +121,13 @@ async function connectDB() {
   }
 
   try {
-    await mongoose.connect(MONGODB_URL, {
+    connect = new MongoClient(MONGODB_URL, {
       useNewUrlParser: true,
-      useUnifiedTopology: true,
+      useUnifiedTopology: true
     });
+
+    await connect.connect();
+    DB = connect.db();
 
     console.log('✅ MongoDB connected successfully');
   } catch (error) {
@@ -138,7 +142,7 @@ async function connectDB() {
 // --------------------
 async function fetchProjectsFromDB(projectIds) {
   
-    const projectsCollection = mongoose.connection.collection('projects');
+    const projectsCollection = DB.collection('projects');
     projectIds = projectIds.filter(id => ObjectId.isValid(id))
                             .map(id => new ObjectId(id));
     if (!projectIds.length) return [];
@@ -185,7 +189,7 @@ function updateNonProcessedFile(updaterFn) {
 // Fetch valid projects
 // ------------------------
 async function fetchValidProjectsFromDB(solutions) {
-    const projectsCollection = mongoose.connection.collection('projects');
+    const projectsCollection = DB.collection('projects');
     const validSolutions = solutions.filter(id => ObjectId.isValid(id));
     const validSolutionObjectIds = validSolutions.map(id => new ObjectId(id));
     if (!validSolutions.length) return;
@@ -439,8 +443,7 @@ function _criteriaExpressionValidation(expression, keys, result) {
 // ------------------------
 async function updateCorruptedProjectsInDB(projects) {
 
-  const projectsCollection = mongoose.connection.collection('projects');
-
+  const projectsCollection = DB.collection('projects');
   const bulkOps = [];
   const eligibleIds = [];
   const nonEligibleIds = [];
@@ -675,7 +678,7 @@ async function runMigration() {
     process.exit(1);
   } finally {
     // Always close connection for scripts
-    await mongoose.connection.close();
+    await connect.close();
     console.log('🔌 MongoDB connection closed');
   }
 }
