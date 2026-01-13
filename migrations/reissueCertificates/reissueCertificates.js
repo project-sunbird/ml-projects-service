@@ -142,7 +142,7 @@ async function connectDB() {
 // --------------------
 async function fetchProjectsFromDB(projectIds) {
   
-    const projectsCollection = DB.collection('projects');
+    const projectsCollection = await DB.collection('projects');
     projectIds = projectIds.filter(id => ObjectId.isValid(id))
                             .map(id => new ObjectId(id));
     if (!projectIds.length) return [];
@@ -189,7 +189,7 @@ function updateNonProcessedFile(updaterFn) {
 // Fetch valid projects
 // ------------------------
 // async function fetchValidProjectsFromDB(solutions) {
-//     const projectsCollection = DB.collection('projects');
+//     const projectsCollection = await DB.collection('projects');
 //     const validSolutions = solutions.filter(id => ObjectId.isValid(id));
 //     const validSolutionObjectIds = validSolutions.map(id => new ObjectId(id));
 //     if (!validSolutions.length) return;
@@ -230,7 +230,7 @@ function updateNonProcessedFile(updaterFn) {
 // }
 
 async function fetchValidProjectsFromDB(solutions) {
-  const projectsCollection = DB.collection('projects');
+  const projectsCollection = await DB.collection('projects');
   const validSolutions = solutions.filter(id => ObjectId.isValid(id));
   const validSolutionObjectIds = validSolutions.map(id => new ObjectId(id));
   if (!validSolutions.length) return;
@@ -477,7 +477,7 @@ function _criteriaExpressionValidation(expression, keys, result) {
 // ------------------------
 async function updateCorruptedProjectsInDB(projects) {
 
-  const projectsCollection = DB.collection('projects');
+  const projectsCollection = await DB.collection('projects');
   const bulkOps = [];
   const eligibleIds = [];
   const nonEligibleIds = [];
