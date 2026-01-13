@@ -188,45 +188,79 @@ function updateNonProcessedFile(updaterFn) {
 // ------------------------
 // Fetch valid projects
 // ------------------------
-async function fetchValidProjectsFromDB(solutions) {
-    const projectsCollection = DB.collection('projects');
-    const validSolutions = solutions.filter(id => ObjectId.isValid(id));
-    const validSolutionObjectIds = validSolutions.map(id => new ObjectId(id));
-    if (!validSolutions.length) return;
+// async function fetchValidProjectsFromDB(solutions) {
+//     const projectsCollection = DB.collection('projects');
+//     const validSolutions = solutions.filter(id => ObjectId.isValid(id));
+//     const validSolutionObjectIds = validSolutions.map(id => new ObjectId(id));
+//     if (!validSolutions.length) return;
 
-    // fetch all matching projects at once
-    const projects = await projectsCollection.aggregate([
+//     // fetch all matching projects at once
+//     const projects = await projectsCollection.aggregate([
+//       {
+//         $match: {
+//           solutionId: { $in: validSolutionObjectIds },
+//           isAPrivateProgram: false,
+//           isMigratedDueToReportIssue: { $exists: false }
+//         }
+//       },
+//       {
+//         $project: {
+//           _id: 1,
+//           solutionId: 1,
+//           tasks: 1
+//         }
+//       }
+//     ]).toArray();
+
+//     for (const solutionId of validSolutions) {
+//       const validProject = projects.find(p => p.solutionId.toString() === solutionId.toString()) || null;
+
+//       // same assignment as before
+//       validProjectPerSolution[solutionId] = validProject;
+
+//       // same logging behavior
+//       if (!validProject) {
+//         updateNonProcessedFile(data => {
+//           if (!data.solutionWithNoReferenceProjects.includes(solutionId)) {
+//             data.solutionWithNoReferenceProjects.push(solutionId);
+//           }
+//         });
+//       }
+//     }
+// }
+
+async function fetchValidProjectsFromDB(solutions) {
+  const projectsCollection = DB.collection('projects');
+  const validSolutions = solutions.filter(id => ObjectId.isValid(id));
+  const validSolutionObjectIds = validSolutions.map(id => new ObjectId(id));
+  if (!validSolutions.length) return;
+
+  for (const solutionId of validSolutionObjectIds) {
+    const validProject = await projectsCollection.findOne(
       {
-        $match: {
-          solutionId: { $in: validSolutionObjectIds },
-          isAPrivateProgram: false,
-          isMigratedDueToReportIssue: { $exists: false }
-        }
+        solutionId,
+        isAPrivateProgram: false,
+        isMigratedDueToReportIssue: { $exists: false }
       },
       {
-        $project: {
+        projection: {
           _id: 1,
           solutionId: 1,
           tasks: 1
         }
       }
-    ]).toArray();
+    );
 
-    for (const solutionId of validSolutions) {
-      const validProject = projects.find(p => p.solutionId.toString() === solutionId.toString()) || null;
+    validProjectPerSolution[solutionId.toString()] = validProject || null;
 
-      // same assignment as before
-      validProjectPerSolution[solutionId] = validProject;
-
-      // same logging behavior
-      if (!validProject) {
-        updateNonProcessedFile(data => {
-          if (!data.solutionWithNoReferenceProjects.includes(solutionId)) {
-            data.solutionWithNoReferenceProjects.push(solutionId);
-          }
-        });
-      }
+    if (!validProject) {
+      updateNonProcessedFile(data => {
+        if (!data.solutionWithNoReferenceProjects.includes(solutionId.toString())) {
+          data.solutionWithNoReferenceProjects.push(solutionId.toString());
+        }
+      });
     }
+  }
 }
 
 
