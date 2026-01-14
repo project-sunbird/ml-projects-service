@@ -1,6 +1,6 @@
 {
     "userToken" : "<---token--->",
-    "projectServiceBaseUrl" : "http://localhost:5000",
+    "projectServiceBaseUrl" : "http://localhost",
     "writeMode" : true,
     "summary": [
       {

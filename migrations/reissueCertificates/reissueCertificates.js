@@ -602,11 +602,12 @@ async function reIssueCertificates(projects) {
     try {
       const responseBody = await requestPromise({
         method: 'POST',
-        url: `${projectServiceBaseUrl}/userProjects/certificateReIssue/${projectId}`,
+        url: `${projectServiceBaseUrl}:${process.env.APPLICATION_PORT}/v1/userProjects/certificateReIssue/${projectId}`,
         headers: {
-          'x-authenticated-user-token': userToken
-        },
-        json: true
+          "content-type": "application/json",
+          "internal-access-token": process.env.INTERNAL_ACCESS_TOKEN,
+          "x-authenticated-user-token": userToken
+        }
       });
 
       apiResponses[projectId] =
