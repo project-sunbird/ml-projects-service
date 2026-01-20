@@ -9,6 +9,8 @@
     const path = require("path");
     const fs = require("fs");
     const { MongoClient, ObjectId } = require("mongodb");
+    const _ = require('lodash');
+    const {updateTasksUsingPublicProject, criteriaValidation, updateCorruptedProjectsInDB, reIssueCertificates} = require("./eligibilityAndTasksValidator")
     require("dotenv").config({ path: path.join(__dirname, "../../") + "/.env" });
     const mongo_url = process.env.MONGODB_URL;
     if (!mongo_url) {
@@ -17,12 +19,26 @@
     }
     let doUpdate = false;
     const programIdArg = process.argv[2];
-    doUpdate = process.argv.includes("--update") === true;
+
+    const doUpdateArg = process.argv.find(arg => arg.startsWith('--update='));
+    doUpdate = doUpdateArg ? doUpdateArg.split('=')[1] : null;
+    doUpdate = doUpdate == "true" ? true : false
+    
+      
+    const tokenArg = process.argv.find(arg => arg.startsWith('--token='));
+    const userToken = tokenArg ? tokenArg.split('=')[1] : null;      
+    const batchSize = 100
 
     if (!programIdArg || !ObjectId.isValid(programIdArg)) {
       console.error("❌ Please provide a valid programId");
       process.exit(1);
     }
+
+    if(!userToken){
+      console.log("--token arg is required");
+      process.exit(1);
+    }
+
     // get programId from command line argument
     const programId = new ObjectId(programIdArg);
     const db_name = mongo_url.split("/").pop();
@@ -35,6 +51,8 @@
     }
     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
 
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
     /* -------------------- MAIN EXECUTION -------------------- */
     (async () => {
     let connection;
@@ -44,6 +62,11 @@
         useUnifiedTopology: true
       });
       const db = connection.db(db_name);
+      const projectStatus = {
+        "submitted" : 3,
+        "inprogress" : 2,
+        "started" : 1
+      }
 
       // fetch program details
       const program = await db.collection("programs").findOne(
@@ -181,11 +204,10 @@
       const finalResult = [];
       const skippedComponents = [];   // track skipped components
 
-
       for (const [componentId, users] of Object.entries(componentUserPrivateProjects)) {
           const componentSolution = await db.collection("solutions").findOne(
           {
-            _id: ObjectId(componentId),
+            _id: new ObjectId(componentId),
             isAPrivateProgram: false
           },
           {
@@ -206,28 +228,31 @@
 
         for (const userEntry of users) {
           const { userId, privateProjectIds } = userEntry;
-
           // 1️⃣ Check public project
           const publicProject = await db.collection("projects").findOne({
-            solutionId: ObjectId(componentId),
+            solutionId: new ObjectId(componentId),
             userId,
             isAPrivateProgram: false
           });
-          // console.log("Public project for user:", userId, "is", publicProject ? "found" : "not found");
-          if (publicProject) continue; // ignore user entirely
+
+          console.log("Public project for user:", userId, "is", publicProject ? "found" : "not found");
+          if(!publicProject) continue;
 
           // 2️⃣ Fetch private projects
           const privateProjects = await db.collection("projects").find({
-            _id: { $in: privateProjectIds.map(id => ObjectId(id)) },
+            _id: { $in: privateProjectIds.map(id => new ObjectId(id)) },
             userId,
             isAPrivateProgram: true
           }).toArray();
 
+          let validPrivateProjects = privateProjects.filter(project => projectStatus[project["status"].toLowerCase()] > projectStatus[publicProject["status"].toLowerCase()])
+
+          if(validPrivateProjects.length == 0) continue;
+
           const ignoredMissingRoleInfo = [];
           const evaluatedProjects = [];
-          // console.log("privateProjects",privateProjects)
-          for (const project of privateProjects) {
-            // console.log("Evaluating project:", project.userRoleInformation);
+
+          for (const project of validPrivateProjects) {
             if (!project.userRoleInformation) {
                 ignoredMissingRoleInfo.push(project._id.toString());
                 let generateuserRoleInfo = buildUserRoleInformationFromProfile(project.userProfile);
@@ -434,7 +459,7 @@
     const { componentId, projectsCreatedDueToBug } = entry;
   
     const solution = await db.collection("solutions").findOne(
-      { _id: ObjectId(componentId) },
+      { _id: new ObjectId(componentId) },
       { _id: 1, externalId: 1 , name:1, programId: 1 , description: 1}
     );
     
@@ -461,11 +486,11 @@
       continue;
     }
     /* 2️⃣ Iterate each bug project */
-    const projectObjectIds = projectsCreatedDueToBug.map(id => ObjectId(id));
+    const projectObjectIds = projectsCreatedDueToBug.map(id => new ObjectId(id));
 
-    const projects = await db.collection("projects").find(
+    let projects = await db.collection("projects").find(
       { _id: { $in: projectObjectIds } },
-      { programId: 1, solutionId: 1, status: 1, "certificate.eligible": 1 }
+      { programId: 1, solutionId: 1, status: 1, certificate: 1, tasks : 1, attachments : 1 }
     ).toArray();
 
     projects.forEach(project => {
@@ -489,43 +514,58 @@
       continue;
     }
 
-    /* 6️⃣ Update all projects under this component */
-    const updatePayload = {
-      $set: {
+    const publicProject = await db.collection("projects").findOne(
+      {
+        solutionId: new ObjectId(componentId),
         isAPrivateProgram: false,
-        isMigratedDueToReportIssue: true,
-        programId: program._id,
-        programExternalId: program.externalId,
-        solutionId: solution._id,
-        solutionExternalId: solution.externalId,
-        programInformation: {
-          _id: program._id,
-          externalId: program.externalId,
-          name: program.name,
-          description: program.description
-        },
-        solutionInformation: {
-          _id: solution._id,
-          externalId: solution.externalId,
-          name: solution.name,
-          description: solution.description
+        userId : projects[0].userId
+      },
+      {
+        projection: {
+          _id: 1,
+          tasks: 1,
+          attachments: 1
         }
       }
-    };
-    const result = await db.collection("projects").updateMany(
-      { _id: { $in: projectObjectIds } },
-      updatePayload
     );
+    const batches = _.chunk(projects, batchSize);
 
-    console.log(`✅ Updated ${result.modifiedCount} projects for componentId: ${componentId}`);
+    await db.collection("projects").deleteOne(
+      {_id : publicProject._id}
+    )
 
+    for(let batch of batches){
+      batch = await updateTasksUsingPublicProject(batch, publicProject);
+
+      for (let project of batch) {
+        try {
+          if(project.status.toLowerCase() != "submitted") continue;
+          const validationResult = await criteriaValidation(project);
+          project.eligible = validationResult && validationResult.success === true;
+        } catch (error) {
+          project.eligible = false;      
+          console.error(
+            `❌ Criteria validation failed for project ${project._id.toString()}`,
+            error.message || error
+          );
+        }
+      }      
+      
+      await updateCorruptedProjectsInDB(batch, db, solution, program);
+
+      await reIssueCertificates(batch, userToken);
+
+      // ⏸ Pause for 30 seconds after certificates are re-issued
+      console.log("⏳ Waiting for 30 seconds before processing next batch...");
+      await sleep(30 * 1000); // 30 seconds
+    }
   }
 
   /* 🧹 Delete programs and solutions ONLY if update mode */
   if (doUpdate) {
     /* Delete Programs */
     if (programsToBeDeleted.size > 0) {
-      const programIds = Array.from(programsToBeDeleted).map(id => ObjectId(id));
+      const programIds = Array.from(programsToBeDeleted).map(id => new ObjectId(id));
 
       console.log("🗑 Deleting Programs:", programIds);
 
@@ -540,7 +580,7 @@
 
     /* Delete Solutions */
     if (solutionsToBeDeleted.size > 0) {
-      const solutionIds = Array.from(solutionsToBeDeleted).map(id => ObjectId(id));
+      const solutionIds = Array.from(solutionsToBeDeleted).map(id => new ObjectId(id));
 
       console.log("🗑 Deleting Solutions:", solutionIds);
 
@@ -576,6 +616,16 @@
     "utf8"
   );
 
+  // update the program
+  await db.collection("programs").updateOne(
+    {_id : new ObjectId(programId)},
+    {
+      $set : {
+        isAPrivateProgram : false
+      }
+    }
+  )
+
   console.log(`📝 Deletion log written to ${deletion_log_path}`);
   await connection.close();
   process.exit(0);
@@ -585,5 +635,3 @@
     process.exit(1);
 }
 })();
-
-    
