@@ -281,7 +281,7 @@ function _criteriaExpressionValidation(expression, keys, result) {
 // ------------------------
 // Update projects in DB
 // ------------------------
-async function updateCorruptedProjectsInDB(projects, DB, solution, program) {
+async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUpdate = false) {
 
   const projectsCollection = await DB.collection('projects');
   const bulkOps = [];
@@ -353,6 +353,12 @@ async function updateCorruptedProjectsInDB(projects, DB, solution, program) {
 
   if (!bulkOps.length) {
     console.log('No eligible projects found to update');
+    return;
+  }
+
+  /* Perform updates ONLY if --update=true flag is passed */
+  if (!doUpdate) {
+    console.log("Dry run only. Skipping DB updates.");
     return;
   }
 

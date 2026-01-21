@@ -5,6 +5,9 @@
      *   node fetchPrivateProgramData.js <programId>
      *
      */
+    /**
+     *  nod command sample:- node migrations/migrationForReportIssue/migrationForReportIssueOfProjects.js 680893ff3d8d030008cd037a --update=true  --baseUrl=<---baseUrl---> --token=<---token--->     * 
+     */
 
     const path = require("path");
     const fs = require("fs");
@@ -26,8 +29,7 @@
     
       
     const tokenArg = process.argv.find(arg => arg.startsWith('--token='));
-    const userToken = tokenArg ? tokenArg.split('=')[1] : null;      
-    const batchSize = 100
+    const userToken = tokenArg ? tokenArg.split('=')[1] : null;
 
     if (!programIdArg || !ObjectId.isValid(programIdArg)) {
       console.error("❌ Please provide a valid programId");
@@ -62,7 +64,7 @@
         useUnifiedTopology: true
       });
       const db = connection.db(db_name);
-      const projectStatus = {
+      const priorityMap = {
         "submitted" : 3,
         "inprogress" : 2,
         "started" : 1
@@ -70,7 +72,7 @@
 
       // fetch program details
       const program = await db.collection("programs").findOne(
-        { _id: programId },
+        { _id: programId, isAPrivateProgram : false },
         { projection: { components: 1, name: 1 } }
       );
       // console.log("program ", program);
@@ -214,7 +216,6 @@
             projection: { scope: 1 }
           }
         );
-
         // 🔹 SKIP COMPONENT IF SOLUTION / SCOPE NOT PRESENT
         if (!componentSolution || !componentSolution.scope) {
           skippedComponents.push({
@@ -225,7 +226,6 @@
           });
           continue; // ⛔ skip this component completely
         }
-
         for (const userEntry of users) {
           const { userId, privateProjectIds } = userEntry;
           // 1️⃣ Check public project
@@ -245,8 +245,26 @@
             isAPrivateProgram: true
           }).toArray();
 
-          let validPrivateProjects = privateProjects.filter(project => projectStatus[project["status"].toLowerCase()] > projectStatus[publicProject["status"].toLowerCase()])
+          let validPrivateProjects = privateProjects.filter(project => priorityMap[project["status"].toLowerCase()] > priorityMap[publicProject["status"].toLowerCase()]);
 
+          // Find the project with the highest priority
+          let highestPriorityProject = null;
+          let highestPriorityValue = -1;
+
+          for (const project of validPrivateProjects) {
+            if (!project || !project.status) continue;
+          
+            const statusKey = project.status.toLowerCase();
+            const priority = priorityMap[statusKey];
+          
+            if (priority && priority > highestPriorityValue) {
+              highestPriorityValue = priority;
+              highestPriorityProject = project;
+            }
+          }
+          
+          // Store back as an array of single item
+          validPrivateProjects = highestPriorityProject ? [highestPriorityProject] : [];
           if(validPrivateProjects.length == 0) continue;
 
           const ignoredMissingRoleInfo = [];
@@ -454,6 +472,7 @@
     const programsToBeDeleted = new Set();
     const solutionsToBeDeleted = new Set();
     const certificateToBeRegenerated = new Set();
+    let publicToPrivateProjectMap = {}
 
   for (const entry of summary) {
     const { componentId, projectsCreatedDueToBug } = entry;
@@ -508,12 +527,6 @@
 
     });
 
-    /* 5️⃣ Perform updates ONLY if --update flag is passed */
-    if (!doUpdate) {
-      console.log("ℹ️ Dry run only. Skipping DB updates.");
-      continue;
-    }
-
     const publicProject = await db.collection("projects").findOne(
       {
         solutionId: new ObjectId(componentId),
@@ -528,37 +541,47 @@
         }
       }
     );
-    const batches = _.chunk(projects, batchSize);
 
-    await db.collection("projects").deleteOne(
-      {_id : publicProject._id}
-    )
-
-    for(let batch of batches){
-      batch = await updateTasksUsingPublicProject(batch, publicProject);
-
-      for (let project of batch) {
-        try {
-          if(project.status.toLowerCase() != "submitted") continue;
-          const validationResult = await criteriaValidation(project);
-          project.eligible = validationResult && validationResult.success === true;
-        } catch (error) {
-          project.eligible = false;      
-          console.error(
-            `❌ Criteria validation failed for project ${project._id.toString()}`,
-            error.message || error
-          );
-        }
-      }      
-      
-      await updateCorruptedProjectsInDB(batch, db, solution, program);
-
-      await reIssueCertificates(batch, userToken);
-
-      // ⏸ Pause for 30 seconds after certificates are re-issued
-      console.log("⏳ Waiting for 30 seconds before processing next batch...");
-      await sleep(30 * 1000); // 30 seconds
+    // deleting public project before converting private project to public
+    if(doUpdate){
+      await db.collection("projects").deleteOne(
+        {_id : publicProject._id}
+      )
     }
+
+    // update tasks.referenceId a& task.externalId of every privateProject
+    projects = await updateTasksUsingPublicProject(projects, publicProject);
+
+    for (let project of projects) {
+      try {
+        if(project.status.toLowerCase() != "submitted") continue;
+        const validationResult = await criteriaValidation(project);
+        project.eligible = validationResult && validationResult.success === true;
+      } catch (error) {
+        project.eligible = false;      
+        console.error(
+          `❌ Criteria validation failed for project ${project._id.toString()}`,
+          error.message || error
+        );
+      }
+    }      
+    
+    // update tasks & certificate.eligibility in DB
+    await updateCorruptedProjectsInDB(projects, db, solution, program, doUpdate);
+
+    /* Perform updates ONLY if --update flag is passed */
+    if (!doUpdate) {
+      console.log("Dry run only. Skipping Certificate Reissue.");
+      continue;
+    }
+    await reIssueCertificates(projects, userToken);
+
+    // store the private project for which a public project was deleted
+    publicToPrivateProjectMap[publicProject._id.toString()] = projects[0]._id.toString()
+
+    // ⏸ Pause for 30 seconds after certificates are re-issued
+    console.log("⏳ Waiting for 30 seconds before processing next batch...");
+    await sleep(30 * 1000); // 30 seconds
   }
 
   /* 🧹 Delete programs and solutions ONLY if update mode */
@@ -610,23 +633,25 @@
     `program_private_project_deletion_log_${timestamp}.json`
   );
 
+  const publicToPrivateProjectFile = path.join(
+    output_dir,
+    `public_to_private_project_file${timestamp}.json`
+  )
+
   fs.writeFileSync(
     deletion_log_path,
     JSON.stringify(deletionLog, null, 2),
     "utf8"
   );
-
-  // update the program
-  await db.collection("programs").updateOne(
-    {_id : new ObjectId(programId)},
-    {
-      $set : {
-        isAPrivateProgram : false
-      }
-    }
-  )
-
   console.log(`📝 Deletion log written to ${deletion_log_path}`);
+
+  fs.writeFileSync(
+    publicToPrivateProjectFile,
+    JSON.stringify(publicToPrivateProjectMap, null, 2),
+    "utf8"
+  );
+  console.log(`📝 Public to Private project deletion data is stored at ${publicToPrivateProjectFile}`);
+
   await connection.close();
   process.exit(0);
 } catch (err) {
