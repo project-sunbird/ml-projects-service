@@ -6,7 +6,7 @@
      *
      */
     /**
-     *  nod command sample:- node migrations/migrationForReportIssue/migrationForReportIssueOfProjects.js 680893ff3d8d030008cd037a --update=true  --baseUrl=<---baseUrl---> --token=<---token--->     * 
+     *  node command sample:- node migrations/migrationForReportIssue/migrationForReportIssueOfProjects.js 680893ff3d8d030008cd037a --update=true  --baseUrl=<---baseUrl---> --token=<---token--->     * 
      */
 
     const path = require("path");
@@ -22,7 +22,7 @@
     }
     let doUpdate = false;
     const programIdArg = process.argv[2];
-
+    const batchSize = 100;
     const doUpdateArg = process.argv.find(arg => arg.startsWith('--update='));
     doUpdate = doUpdateArg ? doUpdateArg.split('=')[1] : null;
     doUpdate = doUpdate == "true" ? true : false
@@ -47,11 +47,20 @@
     const url = mongo_url.split(db_name)[0];
 
     /* -------------------- OUTPUT SETUP -------------------- */
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const output_dir = path.join(__dirname, "output");
+    const masterFilePath = path.join(output_dir, `${programId.toString()}-${timestamp}.json`);
+    let masterJsonData;
+    masterJsonData = doUpdate ? {mode : "WRITE-MODE"} : {mode : "READ-MODE"};
+
     if (!fs.existsSync(output_dir)) {
       fs.mkdirSync(output_dir, { recursive: true });
     }
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    fs.writeFileSync(
+      masterFilePath,
+      JSON.stringify(masterJsonData, null, 2),
+      "utf8"
+    );      
 
     const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -168,7 +177,7 @@
         };
       }
       /* ---------- 3. COMPONENT → USER → PRIVATE PROJECT AGGREGATION ---------- */
-      const componentUserPrivateProjects = {};
+      let componentUserPrivateProjects = {};
 
       for (const [componentId, componentData] of Object.entries(output.components)) {
         const userMap = {};
@@ -192,14 +201,17 @@
           componentUserPrivateProjects[componentId] = Object.values(userMap);
         }
       }
-      const aggPath = path.join(
-        output_dir,
-        `component_user_private_projects_${timestamp}.json`
-      );
+
+      if (fs.existsSync(masterFilePath)) {
+        const fileContent = fs.readFileSync(masterFilePath, "utf8");
+        masterJsonData = fileContent ? JSON.parse(fileContent) : {};
+      }
+
+      masterJsonData["component_user_private_projects"] = componentUserPrivateProjects;
 
       fs.writeFileSync(
-        aggPath,
-        JSON.stringify(componentUserPrivateProjects, null, 2),
+        masterFilePath,
+        JSON.stringify(masterJsonData, null, 2),
         "utf8"
       );
 
@@ -227,6 +239,7 @@
           continue; // ⛔ skip this component completely
         }
         for (const userEntry of users) {
+          let targetedPrivateProjects = [];
           const { userId, privateProjectIds } = userEntry;
           // 1️⃣ Check public project
           const publicProject = await db.collection("projects").findOne({
@@ -235,8 +248,11 @@
             isAPrivateProgram: false
           });
 
-          console.log("Public project for user:", userId, "is", publicProject ? "found" : "not found");
-          if(!publicProject) continue;
+          // console.log("Public project for user:", userId, "is", publicProject ? "found" : "not found");
+          if(!publicProject) {
+            userEntry.privateProjectIds = [];
+            continue;
+          }
 
           // 2️⃣ Fetch private projects
           const privateProjects = await db.collection("projects").find({
@@ -265,7 +281,10 @@
           
           // Store back as an array of single item
           validPrivateProjects = highestPriorityProject ? [highestPriorityProject] : [];
-          if(validPrivateProjects.length == 0) continue;
+          if(validPrivateProjects.length == 0) {
+            userEntry.privateProjectIds = [];
+            continue;
+          }
 
           const ignoredMissingRoleInfo = [];
           const evaluatedProjects = [];
@@ -286,6 +305,10 @@
               project.userRoleInformation
             );
 
+            if(targeted){
+              targetedPrivateProjects.push(project._id.toString());
+            }
+
             evaluatedProjects.push({
               projectId: project._id.toString(),
               targeted,
@@ -303,6 +326,7 @@
             ignoredPrivateProjectMissingUserRoleInformation: ignoredMissingRoleInfo,
             evaluatedPrivateProjects: evaluatedProjects
           });
+          userEntry.privateProjectIds = targetedPrivateProjects;
         }
       }
 
@@ -344,14 +368,16 @@
       };
 
 
-    const outputPath = path.join(
-      output_dir,
-      `private_project_bug_analysis_${Date.now()}.json`
-    );
+    if(fs.existsSync(masterFilePath)){
+      const fileContent = fs.readFileSync(masterFilePath, "utf8");
+      masterJsonData = fileContent ? JSON.parse(fileContent) : {};
+    }
+
+    masterJsonData["private_project_bug_analysis"] = combinedOutput;
 
     fs.writeFileSync(
-      outputPath,
-      JSON.stringify(combinedOutput, null, 2),
+      masterFilePath,
+      JSON.stringify(masterJsonData, null, 2),
       "utf8"
     );
 
@@ -465,29 +491,30 @@
      `program_private_project_data_${timestamp}.json`
     );
 
-    fs.writeFileSync(output_path, JSON.stringify(output, null, 2), "utf8");
+    if(fs.existsSync(masterFilePath)){
+      const fileContent = fs.readFileSync(masterFilePath, "utf8");
+      masterJsonData = fileContent ? JSON.parse(fileContent) : {};
+    }
+
+    masterJsonData["program_private_project_data"] = output;
+
+    fs.writeFileSync(masterFilePath, JSON.stringify(masterJsonData, null, 2), "utf8");
 
     //-----------------------------------------------update the project
     let projectsToBeUpdated = summary;    
     const programsToBeDeleted = new Set();
     const solutionsToBeDeleted = new Set();
-    const certificateToBeRegenerated = new Set();
-    let publicToPrivateProjectMap = {}
-
-  for (const entry of summary) {
-    const { componentId, projectsCreatedDueToBug } = entry;
-  
+    let publicToPrivateProjectMap = {};
+  for (const [componentId, users] of Object.entries(componentUserPrivateProjects)) {
     const solution = await db.collection("solutions").findOne(
       { _id: new ObjectId(componentId) },
       { _id: 1, externalId: 1 , name:1, programId: 1 , description: 1}
     );
-    
     if (!solution) {
       print(`❌ Solution not found for componentId: ${componentId}`);
       continue;
     }
-
-    /* 2️⃣ Fetch program once */
+    /* Fetch program once */
     const program = await db.collection("programs").findOne(
       { _id: solution.programId },
       {
@@ -499,89 +526,97 @@
         }
       }
     );
-
     if (!program) {
       print(`❌ Program not found for solution: ${solution._id}`);
       continue;
     }
-    /* 2️⃣ Iterate each bug project */
-    const projectObjectIds = projectsCreatedDueToBug.map(id => new ObjectId(id));
 
-    let projects = await db.collection("projects").find(
-      { _id: { $in: projectObjectIds } },
-      { programId: 1, solutionId: 1, status: 1, certificate: 1, tasks : 1, attachments : 1 }
-    ).toArray();
+    let projectsPerComponent = [];
 
-    projects.forEach(project => {
-      if (project.programId) {
-        programsToBeDeleted.add(project.programId.toString());
+    for(const userEntry of users){
+      const {userId, privateProjectIds} = userEntry;
+      // if(["680894a73d8d030008cd0388", "685bd9ac3d8d030008fda1bb"].includes(componentId)) console.log(privateProjectIds)
+      if(privateProjectIds.length == 0) continue;
+      /* Iterate each bug project */
+      const projectObjectIds = privateProjectIds.map(id => new ObjectId(id));
+      let projects = await db.collection("projects").find(
+        { _id: { $in: projectObjectIds } },
+        { programId: 1, solutionId: 1, status: 1, certificate: 1, tasks : 1, attachments : 1 }
+      ).toArray();
+      projects.forEach(project => {
+        if (project.programId) {
+          programsToBeDeleted.add(project.programId.toString());
+        }
+  
+        if (project.solutionId) {
+          solutionsToBeDeleted.add(project.solutionId.toString());
+        }
+  
+      });
+      const publicProject = await db.collection("projects").findOne(
+        {
+          solutionId: new ObjectId(componentId),
+          isAPrivateProgram: false,
+          userId
+        },
+        {
+          projection: {
+            _id: 1,
+            tasks: 1,
+            attachments: 1
+          }
+        }
+      );
+      // store the private project for which a public project was deleted
+      publicToPrivateProjectMap[publicProject._id.toString()] = "";
+
+      // deleting public project before converting private project to public
+      if(doUpdate){
+        await db.collection("projects").deleteOne(
+          {_id : publicProject._id}
+        )
       }
 
-      if (project.solutionId) {
-        solutionsToBeDeleted.add(project.solutionId.toString());
-      }
-      
-      if (project.status === "submitted" && project.certificate && project.certificate.eligible === true) {
-        certificateToBeRegenerated.add(project._id.toString());
-      }
+      // update tasks.referenceId & tasks.externalId of every privateProject
+      projects = await updateTasksUsingPublicProject(projects, publicProject);
 
-    });
-
-    const publicProject = await db.collection("projects").findOne(
-      {
-        solutionId: new ObjectId(componentId),
-        isAPrivateProgram: false,
-        userId : projects[0].userId
-      },
-      {
-        projection: {
-          _id: 1,
-          tasks: 1,
-          attachments: 1
+      // validate criteria for each project
+      for (let project of projects) {
+        try {
+          if(project.status.toLowerCase() != "submitted") continue;
+          const validationResult = await criteriaValidation(project);
+          project.eligible = validationResult && validationResult.success === true;
+          projectsPerComponent.push(project);
+          // store the private project for which a public project was deleted
+          publicToPrivateProjectMap[publicProject._id.toString()] = project._id.toString();
+        } catch (error) {
+          project.eligible = false;      
+          console.error(
+            `❌ Criteria validation failed for project ${project._id.toString()}`,
+            error.message || error
+          );
         }
       }
-    );
 
-    // deleting public project before converting private project to public
-    if(doUpdate){
-      await db.collection("projects").deleteOne(
-        {_id : publicProject._id}
-      )
     }
+    const batches = _.chunk(projectsPerComponent, batchSize);
 
-    // update tasks.referenceId a& task.externalId of every privateProject
-    projects = await updateTasksUsingPublicProject(projects, publicProject);
-
-    for (let project of projects) {
-      try {
-        if(project.status.toLowerCase() != "submitted") continue;
-        const validationResult = await criteriaValidation(project);
-        project.eligible = validationResult && validationResult.success === true;
-      } catch (error) {
-        project.eligible = false;      
-        console.error(
-          `❌ Criteria validation failed for project ${project._id.toString()}`,
-          error.message || error
-        );
+    for(const batch of batches){
+      // update tasks & certificate.eligibility in DB
+      await updateCorruptedProjectsInDB(batch, db, solution, program, doUpdate, masterFilePath);
+  
+      /* Perform updates ONLY if --update flag is passed */
+      if (!doUpdate) {
+        console.log("Dry run only. Skipping Certificate Reissue.");
+        continue;
       }
-    }      
+  
+      await reIssueCertificates(batch, userToken, masterFilePath);
     
-    // update tasks & certificate.eligibility in DB
-    await updateCorruptedProjectsInDB(projects, db, solution, program, doUpdate);
-
-    /* Perform updates ONLY if --update flag is passed */
-    if (!doUpdate) {
-      console.log("Dry run only. Skipping Certificate Reissue.");
-      continue;
+      // ⏸ Pause for 30 seconds after certificates are re-issued
+      console.log("⏳ Waiting for 30 seconds before processing next batch...");
+      await sleep(30 * 1000); // 30 seconds
     }
-    await reIssueCertificates(projects, userToken);
-
-    // store the private project for which a public project was deleted
-    publicToPrivateProjectMap[publicProject._id.toString()] = projects[0]._id.toString()
-
-    // ⏸ Pause for 30 seconds after certificates are re-issued
-    console.log("⏳ Waiting for 30 seconds before processing next batch...");
-    await sleep(30 * 1000); // 30 seconds
   }
 
   /* 🧹 Delete programs and solutions ONLY if update mode */
@@ -624,33 +659,27 @@
   const deletionLog = {
     timestamp: new Date().toISOString(),
     programsDeleted: Array.from(programsToBeDeleted),
-    solutionsDeleted: Array.from(solutionsToBeDeleted),
-    certificatesToBeRegenerated: Array.from(certificateToBeRegenerated)
+    solutionsDeleted: Array.from(solutionsToBeDeleted)
   };
 
-  const deletion_log_path = path.join(
-    output_dir,
-    `program_private_project_deletion_log_${timestamp}.json`
-  );
+  if(fs.existsSync(masterFilePath)){
+    const fileContent = fs.readFileSync(masterFilePath, "utf8");
+    masterJsonData = fileContent ? JSON.parse(fileContent) : {};
+  }
 
-  const publicToPrivateProjectFile = path.join(
-    output_dir,
-    `public_to_private_project_file${timestamp}.json`
-  )
-
-  fs.writeFileSync(
-    deletion_log_path,
-    JSON.stringify(deletionLog, null, 2),
-    "utf8"
-  );
-  console.log(`📝 Deletion log written to ${deletion_log_path}`);
+  masterJsonData["program_private_project_deletion_log"] = deletionLog;
+  if(!doUpdate){
+    masterJsonData["public_projects_to_be_deleted"] = Object.keys(publicToPrivateProjectMap);
+  }
+  else{
+    masterJsonData["deleted_to_replacement_id_map"] = publicToPrivateProjectMap;
+  }
 
   fs.writeFileSync(
-    publicToPrivateProjectFile,
-    JSON.stringify(publicToPrivateProjectMap, null, 2),
+    masterFilePath,
+    JSON.stringify(masterJsonData, null, 2),
     "utf8"
   );
-  console.log(`📝 Public to Private project deletion data is stored at ${publicToPrivateProjectFile}`);
 
   await connection.close();
   process.exit(0);

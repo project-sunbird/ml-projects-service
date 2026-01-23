@@ -9,65 +9,10 @@ require('dotenv').config({
   path: path.resolve(__dirname, '../../.env'),
 });
 
-const batchSize = 100
-
-const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-
 const output_dir = path.join(__dirname, "output");
 if (!fs.existsSync(output_dir)) {
   fs.mkdirSync(output_dir, { recursive: true });
-}
-
-const eligibleFilePath = path.resolve(
-  __dirname,
-  `output/eligibleProjects-${timestamp}.txt`
-);
-
-const nonEligibleFilePath = path.resolve(
-  __dirname,
-  `output/nonEligibleProjects-${timestamp}.txt`
-);
-
-const apiResponsesFilePath = path.resolve(
-  __dirname,
-  `output/certificateReissueApiResponses-${timestamp}.json`
-);
- 
-const nonProcessedDataFilePath = path.resolve(
-  __dirname,
-  `output/nonProcessedDataFilePath-${timestamp}.json`
-);
-
-// Create empty files (overwrite if they somehow exist)
-fs.writeFileSync(eligibleFilePath, '', { flag: 'w' });
-fs.writeFileSync(nonEligibleFilePath, '', { flag: 'w' });
-fs.writeFileSync(apiResponsesFilePath, '', { flag: 'w' });
-fs.writeFileSync(
-  nonProcessedDataFilePath,
-  JSON.stringify(
-    {
-      solutionWithNoReferenceProjects: [],
-      bulkUpdateFailureProjects: []
-    },
-    null,
-    2
-  ),
-  'utf8'
-);
-
-function updateNonProcessedFile(updaterFn) {
-  const fileData = JSON.parse(
-    fs.readFileSync(nonProcessedDataFilePath, 'utf8')
-  );
-
-  updaterFn(fileData);
-
-  fs.writeFileSync(
-    nonProcessedDataFilePath,
-    JSON.stringify(fileData, null, 2),
-    'utf8'
-  );
-}
+};
 
 
 function updateTasksUsingPublicProject(projects, publicProject) {
@@ -106,7 +51,6 @@ function updateTasksUsingPublicProject(projects, publicProject) {
   }
   return projects;
 }
-
 
 async function criteriaValidation(data) {
     return new Promise(async (resolve, reject) => {
@@ -148,34 +92,33 @@ async function criteriaValidation(data) {
     })
 }
 
-
 function _subCriteriaValidation(conditions, expression, data) {
-    return new Promise(async (resolve, reject) => {
-         try {
-             let conditionKeys = Object.keys(conditions)
-             let validationResult = [];
-            // loop throug conditions of subcriterias
-             for ( let index = 0; index < conditionKeys.length; index++ ) {
-                 let currentCondition = conditions[conditionKeys[index]];
-                 // correntCondition contain the prefinal level data
-                 //now pass expression and validation scope to another function which will start the validation procedure
-                 let validation = await _validateCriteriaConditions( currentCondition, data );
-                 validationResult.push(validation);
-             }
-             // validate expression 
-             let subcriteriaValidation = await _criteriaExpressionValidation( expression, conditionKeys, validationResult )
-             return resolve({
-                 success: subcriteriaValidation
-             });
- 
-         } catch (error) {
-             return reject({
-                 message: error.message,
-                 success: false
-             })
-         }
-     })
- }
+  return new Promise(async (resolve, reject) => {
+        try {
+            let conditionKeys = Object.keys(conditions)
+            let validationResult = [];
+          // loop throug conditions of subcriterias
+            for ( let index = 0; index < conditionKeys.length; index++ ) {
+                let currentCondition = conditions[conditionKeys[index]];
+                // correntCondition contain the prefinal level data
+                //now pass expression and validation scope to another function which will start the validation procedure
+                let validation = await _validateCriteriaConditions( currentCondition, data );
+                validationResult.push(validation);
+            }
+            // validate expression 
+            let subcriteriaValidation = await _criteriaExpressionValidation( expression, conditionKeys, validationResult )
+            return resolve({
+                success: subcriteriaValidation
+            });
+
+        } catch (error) {
+            return reject({
+                message: error.message,
+                success: false
+            })
+        }
+    })
+}
 
  function _validateCriteriaConditions(condition, data) {
     return new Promise(async (resolve, reject) => {
@@ -278,10 +221,7 @@ function _criteriaExpressionValidation(expression, keys, result) {
     })
 }
 
-// ------------------------
-// Update projects in DB
-// ------------------------
-async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUpdate = false) {
+async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUpdate = false, masterFilePath) {
 
   const projectsCollection = await DB.collection('projects');
   const bulkOps = [];
@@ -334,22 +274,20 @@ async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUp
     }
   }
 
-  // Append projectIds to files (NOT overwrite)
-  if (eligibleIds.length) {
-    fs.appendFileSync(
-      eligibleFilePath,
-      eligibleIds.join('\n') + '\n',
-      'utf8'
-    );
+  let jsonData = {};
+  if(fs.existsSync(masterFilePath)){
+    const fileContent = fs.readFileSync(masterFilePath,"utf8");
+    jsonData = fileContent ? JSON.parse(fileContent) : {};
   }
 
-  if (nonEligibleIds.length) {
-    fs.appendFileSync(
-      nonEligibleFilePath,
-      nonEligibleIds.join('\n') + '\n',
-      'utf8'
-    );
-  }
+  jsonData["certificateEligibleProjectIds"] = eligibleIds;
+  jsonData["certificateNonEligibleProjectIds"] = nonEligibleIds;
+
+  fs.writeFileSync(
+    masterFilePath,
+    JSON.stringify(jsonData, null, 2),
+    'utf8'
+  );
 
   if (!bulkOps.length) {
     console.log('No eligible projects found to update');
@@ -368,34 +306,10 @@ async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUp
       { ordered: false }
     );
 
-    console.log({
-      eligibleUpdated: result.modifiedCount
-    });
-
   } catch (error) {
     console.error('Bulk update partially failed');
-
-    if (error.writeErrors && error.writeErrors.length) {
-      const failedProjectIds = error.writeErrors.map(err => {
-        const failedIndex = err.index;
-        return bulkOps[failedIndex].projectId;
-      });
-
-      console.error('Failed projectIds:', failedProjectIds);
-
-      // 👇 persist failures to your JSON file
-      updateNonProcessedFile(data => {
-        failedProjectIds.forEach(id => {
-          if (!data.bulkUpdateFailureProjects.includes(id)) {
-            data.bulkUpdateFailureProjects.push(id);
-          }
-        });
-      });
-    }
   }
 }
-
-
 
 function requestPromise(options) {
   return new Promise((resolve, reject) => {
@@ -409,11 +323,9 @@ function requestPromise(options) {
       return resolve(body);
     });
   });
-}
-
+}  
   
-  
-async function reIssueCertificates(projects, userToken) {
+async function reIssueCertificates(projects, userToken, masterFilePath) {
 
   if (!Array.isArray(projects) || projects.length === 0) {
     console.log("No projects provided for certificate reissue");
@@ -456,29 +368,24 @@ async function reIssueCertificates(projects, userToken) {
     }
   }
 
-  let existing = [];
-
-  if (fs.existsSync(apiResponsesFilePath)) {
-    const content = fs.readFileSync(apiResponsesFilePath, 'utf-8').trim();
-    if (content) {
-      existing = JSON.parse(content);
-    }
+  let jsonData = {};
+  if (fs.existsSync(masterFilePath)) {
+    const fileContent = fs.readFileSync(masterFilePath, 'utf-8');
+    jsonData = fileContent ? JSON.parse(fileContent) : {};
   }
-  
-  existing.push(apiResponses);
+
+  jsonData["certificateReissueApiResponses"] = apiResponses;
   
   fs.writeFileSync(
-    apiResponsesFilePath,
-    JSON.stringify(existing, null, 2),
+    masterFilePath,
+    JSON.stringify(jsonData, null, 2),
     'utf-8'
   );
-
-  console.log(`📄 API responses written to ${apiResponsesFilePath}`);
 }
 
 module.exports = {
-    updateTasksUsingPublicProject,
-    criteriaValidation,
-    updateCorruptedProjectsInDB,
-    reIssueCertificates
-}
+  updateTasksUsingPublicProject,
+  criteriaValidation,
+  updateCorruptedProjectsInDB,
+  reIssueCertificates
+};
