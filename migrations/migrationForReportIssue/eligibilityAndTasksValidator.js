@@ -280,9 +280,18 @@ async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUp
     jsonData = fileContent ? JSON.parse(fileContent) : {};
   }
 
-  jsonData["certificateEligibleProjectIds"] = eligibleIds;
-  jsonData["certificateNonEligibleProjectIds"] = nonEligibleIds;
+  if (Array.isArray(jsonData["certificateEligibleProjectIds"])) {
+    jsonData["certificateEligibleProjectIds"].push(...eligibleIds);
+  } else {
+    jsonData["certificateEligibleProjectIds"] = [...eligibleIds];
+  }
 
+  if (Array.isArray(jsonData["certificateNonEligibleProjectIds"])) {
+    jsonData["certificateNonEligibleProjectIds"].push(...nonEligibleIds);
+  } else {
+    jsonData["certificateNonEligibleProjectIds"] = [...nonEligibleIds];
+  }
+  
   fs.writeFileSync(
     masterFilePath,
     JSON.stringify(jsonData, null, 2),
@@ -374,7 +383,16 @@ async function reIssueCertificates(projects, userToken, masterFilePath) {
     jsonData = fileContent ? JSON.parse(fileContent) : {};
   }
 
-  jsonData["certificateReissueApiResponses"] = apiResponses;
+  if (
+    jsonData["certificateReissueApiResponses"]
+  ) {
+    jsonData["certificateReissueApiResponses"] = {
+      ...jsonData["certificateReissueApiResponses"],
+      ...apiResponses
+    };
+  } else {
+    jsonData["certificateReissueApiResponses"] = { ...apiResponses };
+  }
   
   fs.writeFileSync(
     masterFilePath,
