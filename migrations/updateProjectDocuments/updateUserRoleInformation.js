@@ -1,3 +1,10 @@
+/**
+ *  Script execution command sample:
+ *  Read-Mode:- node migrations/updateProjectDocuments/updateUserRoleInformation.js --update=false
+ *  Write-Mode:- node migrations/updateProjectDocuments/updateUserRoleInformation.js --update=true
+ * 
+ */
+
 const path = require("path");
 const fs = require("fs");
 require("dotenv").config({ path: path.join(__dirname, "../../") + "/.env" });
@@ -32,7 +39,11 @@ function fetchUdiseCode(doc){
 const locationSearch = function (neededUdiseCodes) {
   return new Promise(async (resolve, reject) => {
       try {
-          
+        if(!doUpdate){
+            console.log("Skipped calling locationSearch Api(s) as read-mode is enabled.");
+            return resolve({success:false})
+        }
+
         let bodyData={};
         bodyData["request"] = {};
         bodyData["request"]["filters"] = {
@@ -59,7 +70,7 @@ const locationSearch = function (neededUdiseCodes) {
             } else {
                 let response = data.body;
                 
-                if( response.responseCode === CONSTANTS.common.OK &&
+                if( response.responseCode === "OK" &&
                     response.result &&
                     response.result.response &&
                     response.result.response.length > 0
@@ -167,29 +178,30 @@ async function runMigration() {
                 });
             }
         }
-        if(doUpdate){
 
-            if(neededUdiseCodes.length > 0){
-                // Call Location Search API to fetch UDISE codes for school UUIDs
-                const response = await locationSearch(neededUdiseCodes);
-    
-                // If the API call itself fails, mark all related projects as failed
-                if(!response.success){
-                    console.log("Location Search api failed for the current batch!");
+        if(neededUdiseCodes.length > 0){
+            // Call Location Search API to fetch UDISE codes for school UUIDs
+            const response = await locationSearch(neededUdiseCodes);
+
+            // If the API call itself fails, mark all related projects as failed
+            if(!response.success){
+                if(doUpdate){
                     neededUdiseCodes.forEach(obj => {
                         failedProjectUpdateStatus[obj.projectId.toString()] = {
                             success : false,
                             message : "Location Search api call failed."
                         }
                     })
-                }else{
-                    // API call succeeded; attempt to map UUIDs to UDISE codes
-                    neededUdiseCodes.forEach(obj => {
-                        // Find matching location entry using school UUID
-                        const matchItem = response.data.find(item => item.id == obj.uuid);
+                }
+            }else{
+                // API call succeeded; attempt to map UUIDs to UDISE codes
+                neededUdiseCodes.forEach(obj => {
+                    // Find matching location entry using school UUID
+                    const matchItem = response.data.find(item => item.id == obj.uuid);
 
-                        // If a valid UDISE code is found, prepare a bulk DB update
-                        if(matchItem && matchItem.code && (matchItem.code != "")){
+                    // If a valid UDISE code is found, prepare a bulk DB update
+                    if(matchItem && matchItem.code && (matchItem.code != "")){
+                        if(doUpdate){
                             bulkOps.push({
                                 updateOne: {
                                     filter: { _id: obj.projectId },
@@ -201,33 +213,32 @@ async function runMigration() {
                                 }
                             });
                         }
-                        else{
-                            // If no UDISE code is found for the UUID, mark this project update as failed
-                            failedProjectUpdateStatus[obj.projectId.toString()] = {
-                                success : false,
-                                message : "Udise code not found in locationSearch api."
-                            }
+                    }
+                    else{
+                        // If no UDISE code is found for the UUID, mark this project update as failed
+                        failedProjectUpdateStatus[obj.projectId.toString()] = {
+                            success : false,
+                            message : "Udise code not found in locationSearch api."
                         }
-                        // Attach resolved UDISE code (or null) to the object for tracking / debugging purposes
-                        obj.udise = matchItem ? matchItem.code : null;
-                    })           
-                }
+                    }
+                    // Attach resolved UDISE code (or null) to the object for tracking / debugging purposes
+                    obj.udise = matchItem ? matchItem.code : null;
+                })           
             }
-
-            // Update DB for this batch        
-            if (bulkOps.length > 0) {
-                const result = await collection.bulkWrite(bulkOps);
-                console.log(`Batch updated: Matched ${result.matchedCount}, Modified ${result.modifiedCount}`);
-            }
+        }
+        // Update DB for this batch        
+        if (doUpdate && (bulkOps.length > 0)) {
+            const result = await collection.bulkWrite(bulkOps);
+            console.log(`Batch updated: Matched ${result.matchedCount}, Modified ${result.modifiedCount}`);
         }
 
         // Move cursor forward
         lastId = docs[docs.length - 1]._id;
         console.log(`Processed batch ending at _id: ${lastId}`);
 
-        // Pause for 30 seconds before processing next batch
-        console.log("⏳ Waiting for 30 seconds before processing next batch...");
-        await sleep(30 * 1000); // 30 seconds
+        // Pause for 5 seconds before processing next batch
+        console.log("⏳ Waiting for 5 seconds before processing next batch...");
+        await sleep(5 * 1000); // 5 seconds
     }
 
     await client.close();
