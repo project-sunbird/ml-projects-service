@@ -39,10 +39,6 @@ function fetchUdiseCode(doc){
 const locationSearch = function (neededUdiseCodes) {
   return new Promise(async (resolve, reject) => {
       try {
-        if(!doUpdate){
-            console.log("Skipped calling locationSearch Api(s) as read-mode is enabled.");
-            return resolve({success:false})
-        }
 
         let bodyData={};
         bodyData["request"] = {};
@@ -85,7 +81,8 @@ const locationSearch = function (neededUdiseCodes) {
         }
 
       } catch (error) {
-          return reject(error);
+            console.log("Consoling the error from locationSearch(): ", error)
+            return reject(error);
       }
   })
 }
@@ -166,16 +163,18 @@ async function runMigration() {
             }else{
                 // If UDISE code is already available,
                 // prepare a bulk DB update to replace UUID with UDISE code
-                bulkOps.push({
-                    updateOne: {
-                        filter: { _id: doc._id },
-                        update: {
-                            $set: {
-                                "userRoleInformation.school": udiseCode
+                if(doUpdate){
+                    bulkOps.push({
+                        updateOne: {
+                            filter: { _id: doc._id },
+                            update: {
+                                $set: {
+                                    "userRoleInformation.school": udiseCode
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
         }
 
@@ -185,14 +184,12 @@ async function runMigration() {
 
             // If the API call itself fails, mark all related projects as failed
             if(!response.success){
-                if(doUpdate){
-                    neededUdiseCodes.forEach(obj => {
-                        failedProjectUpdateStatus[obj.projectId.toString()] = {
-                            success : false,
-                            message : "Location Search api call failed."
-                        }
-                    })
-                }
+                neededUdiseCodes.forEach(obj => {
+                    failedProjectUpdateStatus[obj.projectId.toString()] = {
+                        success : false,
+                        message : "Location Search api call failed."
+                    }
+                })
             }else{
                 // API call succeeded; attempt to map UUIDs to UDISE codes
                 neededUdiseCodes.forEach(obj => {
