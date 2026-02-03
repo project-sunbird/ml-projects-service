@@ -583,12 +583,12 @@
       // validate criteria for each project
       for (let project of projects) {
         try {
-          if(project.status.toLowerCase() != "submitted") continue;
+          // store the private project for which a public project was deleted
+          publicToPrivateProjectMap[publicProject._id.toString()] = project._id.toString();
+
           const validationResult = await criteriaValidation(project);
           project.eligible = validationResult && validationResult.success === true;
           projectsPerComponent.push(project);
-          // store the private project for which a public project was deleted
-          publicToPrivateProjectMap[publicProject._id.toString()] = project._id.toString();
         } catch (error) {
           project.eligible = false;      
           console.error(
@@ -667,13 +667,7 @@
     masterJsonData = fileContent ? JSON.parse(fileContent) : {};
   }
 
-  masterJsonData["program_private_project_deletion_log"] = deletionLog;
-  if(!doUpdate){
-    masterJsonData["public_projects_to_be_deleted"] = Object.keys(publicToPrivateProjectMap);
-  }
-  else{
-    masterJsonData["deleted_to_replacement_id_map"] = publicToPrivateProjectMap;
-  }
+  masterJsonData["deleted_to_replacement_id_map"] = publicToPrivateProjectMap;
 
   fs.writeFileSync(
     masterFilePath,
