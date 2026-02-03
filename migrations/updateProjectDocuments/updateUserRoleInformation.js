@@ -131,6 +131,10 @@ async function runMigration() {
             .limit(BATCH_SIZE)
             .toArray();
 
+        if(!lastId){
+            console.log(docs);
+        }
+
         if (docs.length === 0) {
             console.log("No more documents to process.");
             break;
