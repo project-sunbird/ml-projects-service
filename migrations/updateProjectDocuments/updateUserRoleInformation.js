@@ -11,6 +11,7 @@ require("dotenv").config({ path: path.join(__dirname, "../../") + "/.env" });
 const { MongoClient, ObjectId } = require("mongodb");
 const UTILS = require("../../generics/helpers/utils");
 const request = require("request");
+const _ = require("lodash");
 
 const MONGO_URI = process.env.MONGODB_URL;
 const COLLECTION = "projects";
@@ -25,11 +26,11 @@ doUpdate = doUpdate == "true" ? true : false
 let executionMode = "READ-MODE"
 if(doUpdate) executionMode = "WRITE-MODE";
 
-function fetchUdiseCode(doc){
-    const uuid = doc.userRoleInformation.school
+function fetchUdiseCode(project){
+    const uuid = project.userRoleInformation.school;
     // if school udise code is found in userProfile.userLocations, use it to update the DB 
-    if(doc.userProfile && doc.userProfile.userLocations && Array.isArray(doc.userProfile.userLocations) && doc.userProfile.userLocations.length > 0){
-        const locations = doc.userProfile.userLocations;
+    if(project.userProfile && project.userProfile.userLocations && Array.isArray(project.userProfile.userLocations) && project.userProfile.userLocations.length > 0){
+        const locations = project.userProfile.userLocations;
         const schoolObj = locations.find(loc => (loc.type === "school" && loc.id === uuid));
         if(schoolObj && schoolObj.code) return schoolObj.code;
     }
@@ -46,7 +47,6 @@ const locationSearch = function (neededUdiseCodes) {
             "id" : neededUdiseCodes.map(obj => obj.uuid)
         }
         const url = `${process.env.USER_SERVICE_URL}/v1/location/search`;
-        console.log(url)
         const options = {
             headers : {
                 "content-type": "application/json"
@@ -95,74 +95,72 @@ async function runMigration() {
         useUnifiedTopology: true
     });
     await client.connect();
+    console.log("DB connected successfully.");
 
     const db = client.db();
     const collection = db.collection(COLLECTION);
 
     // Fetch documents created from 1st September 2025 (UTC)
     const fromDate = new Date("2025-09-01T00:00:00.000Z");
-
-    console.log("Fetching projects created since:", fromDate.toISOString());
-
-    let lastId = null;
-
+    
     let projectsEligibleForUpdate = [];
     let failedProjectUpdateStatus = {};
+    
+    console.log("Fetching projects created since:", fromDate.toISOString());
+    let projectIds = await collection.find(
+                            {
+                                createdAt : {$gte: fromDate.toISOString() }
+                            },
+                            {
+                                projection: {
+                                    _id: 1
+                                }
+                            }
+                        )
+                        .toArray();
+                        
+    projectIds = projectIds.map(project => project._id);
 
-    while (true) {
-        const query = {
-            createdAt: { $gte: fromDate.toISOString() }
-        };
+    const chunks = _.chunk(projectIds, BATCH_SIZE);
 
-        if (lastId) {
-            query._id = { $gt: lastId };
-        }
+    for (const [index, chunk] of chunks.entries()) {
+        console.log(`Processing batch: ${index+1}.`);
+        const projects = await collection
+                        .find(
+                            { _id: { $in: chunk} },
+                            { projection: { _id: 1, userRoleInformation: 1, userProfile: 1 } }
+                        )
+                        .toArray();
 
-        // Projection: fetch only required fields
-        const projection = {
-            _id: 1,
-            userRoleInformation: 1,
-            userProfile: 1
-        };
 
-        const docs = await collection
-            .find(query, { projection })
-            .sort({ _id: 1 })
-            .limit(BATCH_SIZE)
-            .toArray();
-
-        if(!lastId){
-            console.log(docs);
-        }
-
-        if (docs.length === 0) {
+        if (projects.length === 0) {
             console.log("No more documents to process.");
-            break;
+            continue;
         }
 
         let bulkOps = [];
         let neededUdiseCodes = [];
-        for (const doc of docs) {
+        for (const project of projects) {
             // If userRoleInformation does not exist, skip
-            if (!doc.userRoleInformation || !doc.userRoleInformation.school) continue;
+            if (!project.userRoleInformation || !project.userRoleInformation.school) continue;
 
             // If userRoleInformation.school is not uuid, skip
-            if(!UTILS.checkValidUUID(doc.userRoleInformation.school)) continue;
+            if(!UTILS.checkValidUUID(project.userRoleInformation.school)) continue;
 
             // Track project IDs that are eligible for update
-            projectsEligibleForUpdate.push(doc._id.toString());
+            projectsEligibleForUpdate.push(project._id.toString());
 
             // Try to fetch the corresponding UDISE code
             // (may return null/undefined if not yet available)
-            const udiseCode = fetchUdiseCode(doc);
+            const udiseCode = fetchUdiseCode(project);
 
 
             if(!udiseCode){
                 // If UDISE code is not found locally,
                 // collect UUIDs to fetch from user-service in bulk later
                 neededUdiseCodes.push({
-                    projectId : doc._id,
-                    uuid : doc.userRoleInformation.school
+                    projectId : project._id,
+                    uuid : project.userRoleInformation.school
                 });
             }else{
                 // If UDISE code is already available,
@@ -170,7 +168,7 @@ async function runMigration() {
                 if(doUpdate){
                     bulkOps.push({
                         updateOne: {
-                            filter: { _id: doc._id },
+                            filter: { _id: project._id },
                             update: {
                                 $set: {
                                     "userRoleInformation.school": udiseCode
@@ -230,12 +228,8 @@ async function runMigration() {
         // Update DB for this batch        
         if (doUpdate && (bulkOps.length > 0)) {
             const result = await collection.bulkWrite(bulkOps);
-            console.log(`Batch updated: Matched ${result.matchedCount}, Modified ${result.modifiedCount}`);
+            console.log(`Batch-${index+1} updated: Matched ${result.matchedCount}, Modified ${result.modifiedCount}`);
         }
-
-        // Move cursor forward
-        lastId = docs[docs.length - 1]._id;
-        console.log(`Processed batch ending at _id: ${lastId}`);
 
         // Pause for 5 seconds before processing next batch
         console.log("⏳ Waiting for 5 seconds before processing next batch...");
@@ -243,6 +237,7 @@ async function runMigration() {
     }
 
     await client.close();
+    console.log("DB connection closed.");
 
     fs.writeFileSync(
         outputFilePath,
@@ -250,7 +245,6 @@ async function runMigration() {
         "utf8"
     )
     console.log("Script log file created at:", outputFilePath);
-
     console.log("Script execution completed.");
 }
 
