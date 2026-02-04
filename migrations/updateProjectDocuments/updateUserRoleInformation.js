@@ -101,7 +101,7 @@ async function runMigration() {
     const collection = db.collection(COLLECTION);
 
     // Fetch documents created from 1st September 2025 (UTC)
-    const fromDate = new Date("2025-01-01T00:00:00.000Z");
+    const fromDate = new Date("2025-09-01T00:00:00.000Z");
     
     let projectsEligibleForUpdate = [];
     let failedProjectUpdateStatus = {};
