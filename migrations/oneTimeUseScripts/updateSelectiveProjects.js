@@ -3299,11 +3299,11 @@ function convertBulkOpsObjectIds(bulkOps) {
     const { filter, update } = op.updateOne;
 
     // -------- FILTER _id --------
-    if (filter?._id && typeof filter._id === "string") {
+    if (filter && filter._id && typeof filter._id === "string") {
       filter._id = new ObjectId(filter._id);
     }
 
-    const set = update?.$set;
+    const set = update && update.$set;
     if (!set) continue;
 
     // -------- programId --------
@@ -3318,7 +3318,9 @@ function convertBulkOpsObjectIds(bulkOps) {
 
     // -------- programInformation._id --------
     if (
-      set.programInformation?._id &&
+      set &&
+      set.programInformation &&
+      set.programInformation._id &&
       typeof set.programInformation._id === "string"
     ) {
       set.programInformation._id = new ObjectId(
@@ -3328,7 +3330,9 @@ function convertBulkOpsObjectIds(bulkOps) {
 
     // -------- solutionInformation._id --------
     if (
-      set.solutionInformation?._id &&
+      set &&
+      set.solutionInformation &&
+      set.solutionInformation._id &&
       typeof set.solutionInformation._id === "string"
     ) {
       set.solutionInformation._id = new ObjectId(
