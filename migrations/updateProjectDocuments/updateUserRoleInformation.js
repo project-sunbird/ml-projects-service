@@ -1,7 +1,7 @@
 /**
  *  Script execution command sample:
- *  Read-Mode:- node migrations/updateProjectDocuments/updateUserRoleInformation.js --update=false
- *  Write-Mode:- node migrations/updateProjectDocuments/updateUserRoleInformation.js --update=true
+ *  Read-Mode:- node migrations/updateProjectDocuments/updateUserRoleInformation.js --update=false --fromDate=2025-09-01 --toDate=2025-09-30
+ *  Write-Mode:- node migrations/updateProjectDocuments/updateUserRoleInformation.js --update=true --fromDate=2025-09-01 --toDate=2025-09-30
  * 
  */
 
@@ -21,8 +21,29 @@ const outputFilePath = path.join(__dirname, `project-update-log.json-${timestamp
 
 let doUpdate = false;
 const doUpdateArg = process.argv.find(arg => arg.startsWith('--update='));
+const fromDateArg = process.argv.find(arg => arg.startsWith('--fromDate='));
+const toDateArg = process.argv.find(arg => arg.startsWith('--toDate='));
+
+if (!fromDateArg || !toDateArg) {
+    console.error('Error: Both --fromDate and --toDate must be provided.');
+    console.error('Usage: node script.js --fromDate=2025-09-01 --toDate=2025-10-01');
+    process.exit(1);
+}
+
 doUpdate = doUpdateArg ? doUpdateArg.split('=')[1] : null;
-doUpdate = doUpdate == "true" ? true : false
+doUpdate = doUpdate == "true" ? true : false;
+let dateRange;
+const fromDateValue = fromDateArg.split('=')[1];
+const fromDateISO = `${fromDateValue}T00:00:00.000Z`;
+const fromDate = new Date(fromDateISO);
+
+const toDateValue = toDateArg.split('=')[1];
+const toDateISO = `${toDateValue}T00:00:00.000Z`;
+let toDate = new Date(toDateISO);
+toDate.setUTCDate(toDate.getUTCDate() + 1);
+
+dateRange = `${fromDateISO} to ${toDateISO}`;
+
 let executionMode = "READ-MODE"
 if(doUpdate) executionMode = "WRITE-MODE";
 
@@ -99,17 +120,13 @@ async function runMigration() {
 
     const db = client.db();
     const collection = db.collection(COLLECTION);
-
-    // Fetch documents created from 1st September 2025 (UTC)
-    const fromDate = new Date("2025-09-01T00:00:00.000Z");
     
     let projectsEligibleForUpdate = [];
     let failedProjectUpdateStatus = {};
     
-    console.log("Fetching projects created since:", fromDate.toISOString());
     let projectIds = await collection.find(
                             {
-                                createdAt : {$gte: fromDate }
+                                createdAt : {$gte: fromDate, $lt: toDate }
                             },
                             {
                                 projection: {
@@ -241,7 +258,7 @@ async function runMigration() {
 
     fs.writeFileSync(
         outputFilePath,
-        JSON.stringify({executionMode, projectsEligibleForUpdate, failedProjectUpdateStatus}, null, 2),
+        JSON.stringify({executionMode, dateRange, projectsEligibleForUpdate, failedProjectUpdateStatus}, null, 2),
         "utf8"
     )
     console.log("Script log file created at:", outputFilePath);
