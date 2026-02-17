@@ -249,8 +249,8 @@ async function runMigration() {
         }
 
         // Pause for 5 seconds before processing next batch
-        console.log("⏳ Waiting for 5 seconds before processing next batch...");
-        await sleep(5 * 1000); // 5 seconds
+        console.log("⏳ Waiting for 3 seconds before processing next batch...");
+        await sleep(3 * 1000); // 3 seconds
     }
 
     await client.close();
