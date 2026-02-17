@@ -3290,6 +3290,92 @@ let bulkOps = [
   }
 ]
 
+async function processBulkOps(bulkOps, db) {
+  let i = 0;
+
+  while (i < bulkOps.length) {
+
+    const op = bulkOps[i];
+
+    // Skip if not updateOne or no solutionId
+    if (
+      !op.updateOne ||
+      !op.updateOne.update ||
+      !op.updateOne.update.$set ||
+      !op.updateOne.update.$set.solutionId
+    ) {
+      i++;
+      continue;
+    }
+
+    const solutionId = op.updateOne.update.$set.solutionId;
+    const userId = op.updateOne.filter.userId;
+
+    // 🔎 Find existing public project
+    const existingProject = await db.collection("projects").findOne({
+      solutionId: new ObjectId(solutionId),
+      userId: userId,
+      isAPrivateProgram: false,
+    },
+    {
+      projection: { status: 1 }
+    });
+
+    if (!existingProject) {
+      i++;
+      continue;
+    }
+
+    // ==============================
+    // CASE 1: status === "started"
+    // ==============================
+    if (existingProject.status === "started") {
+
+      console.log("Deleting existing started project:", existingProject._id);
+
+      await db.collection("projects").deleteOne({ _id: existingProject._id });
+
+      i++; // move to next
+      continue;
+    }
+
+    // ==========================================
+    // CASE 2: status === "inProgress" / "submitted"
+    // ==========================================
+    if (
+      existingProject.status === "inProgress" ||
+      existingProject.status === "submitted"
+    ) {
+
+      const currentProjectId = op.updateOne.filter._id;
+      const currentUserId = userId;
+
+      console.log(
+        `Removing bulkOps for project ${currentProjectId} due to status ${existingProject.status}`
+      );
+
+      // Remove all matching bulkOps entries
+      bulkOps = bulkOps.filter(item => {
+        if (!item.updateOne) return true;
+
+        return !(
+          item.updateOne.filter._id === currentProjectId &&
+          item.updateOne.filter.userId === currentUserId
+        );
+      });
+
+      // ⚠️ DO NOT increment i here
+      // Because current index now contains next valid element
+      continue;
+    }
+
+    i++;
+  }
+
+  return bulkOps;
+}
+
+
 function convertBulkOpsObjectIds(bulkOps) {
   if (!Array.isArray(bulkOps)) return bulkOps;
 
@@ -3357,6 +3443,9 @@ async function run() {
       console.log("⚠️ No operations to execute.");
       return;
     }
+
+    // process bulkOps
+    bulkOps = await processBulkOps(bulkOps, db);
 
     // converts string to ObjectIds
     bulkOps = convertBulkOpsObjectIds(bulkOps);
