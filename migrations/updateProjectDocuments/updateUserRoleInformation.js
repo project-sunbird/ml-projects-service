@@ -47,6 +47,8 @@ dateRange = `${fromDateISO} to ${toDateISO}`;
 let executionMode = "READ-MODE"
 if(doUpdate) executionMode = "WRITE-MODE";
 
+let fetchedProjectsCount;
+
 function fetchUdiseCode(project){
     const uuid = project.userRoleInformation.school;
     // if school udise code is found in userProfile.userLocations, use it to update the DB 
@@ -137,6 +139,8 @@ async function runMigration() {
                         .toArray();
                         
     projectIds = projectIds.map(project => project._id);
+    fetchedProjectsCount = projectIds.length;
+    console.log("Total fetched projects : ", projectIds.length);
 
     const chunks = _.chunk(projectIds, BATCH_SIZE);
 
@@ -258,7 +262,7 @@ async function runMigration() {
 
     fs.writeFileSync(
         outputFilePath,
-        JSON.stringify({executionMode, dateRange, projectsEligibleForUpdate, failedProjectUpdateStatus}, null, 2),
+        JSON.stringify({executionMode, dateRange, fetchedProjectsCount, projectsEligibleForUpdate, failedProjectUpdateStatus}, null, 2),
         "utf8"
     )
     console.log("Script log file created at:", outputFilePath);
