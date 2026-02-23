@@ -59,22 +59,6 @@ node migrations/migrationForReportIssue/migrationForReportIssueOfProjects.js <pr
 
 ---
 
-# 📂 Output
-
-The script generates output files inside:
-
-```
-/output/
-```
-
-File format:
-
-```
-<programId>-<timestamp>.json
-```
-
----
-
 # 🛑 Mandatory Arguments
 
 | Argument    | Required | Description          |
