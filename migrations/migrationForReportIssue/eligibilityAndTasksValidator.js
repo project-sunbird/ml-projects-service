@@ -26,18 +26,6 @@ function updateTasksUsingPublicProject(projects, publicProject) {
   const referenceTasks = publicProject.tasks;
 
   for (let project of projects) {
-
-    /* -------------------------------------------------------
-       NEW: Skip project if certificate or criteria missing
-    ------------------------------------------------------- */
-    if (
-      !project ||
-      !project.certificate ||
-      !project.certificate.criteria ||
-      !Array.isArray(project.tasks)
-    ) {
-      continue; // keep project unchanged
-    }
     
     // Loop through reference project tasks
     for (const refTask of referenceTasks) {
@@ -259,26 +247,27 @@ async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUp
           filter: { _id: project._id },
           update: {
             $set: {
-                isAPrivateProgram: false,
-                isMigratedDueToReportIssue: true,
-                programId: program._id,
-                programExternalId: program.externalId,
-                solutionId: solution._id,
-                solutionExternalId: solution.externalId,
-                programInformation: {
-                    _id: program._id,
-                    externalId: program.externalId,
-                    name: program.name,
-                    description: program.description,
-                    isAPrivateProgram: false,
-                },
-                solutionInformation: {
-                    _id: solution._id,
-                    externalId: solution.externalId,
-                    name: solution.name,
-                    description: solution.description,
-                    isAPrivateProgram: false,
-                }
+              isAPrivateProgram: false,
+              isMigratedDueToReportIssue: true,
+              programId: program._id,
+              programExternalId: program.externalId,
+              solutionId: solution._id,
+              solutionExternalId: solution.externalId,
+              programInformation: {
+                  _id: program._id,
+                  externalId: program.externalId,
+                  name: program.name,
+                  description: program.description,
+                  isAPrivateProgram: false,
+              },
+              solutionInformation: {
+                  _id: solution._id,
+                  externalId: solution.externalId,
+                  name: solution.name,
+                  description: solution.description,
+                  isAPrivateProgram: false,
+              },
+              tasks: project.tasks,
             }
           }
         }
