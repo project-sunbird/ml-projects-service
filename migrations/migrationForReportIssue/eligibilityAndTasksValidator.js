@@ -26,7 +26,7 @@ function updateTasksUsingPublicProject(projects, publicProject) {
   const referenceTasks = publicProject.tasks;
 
   for (let project of projects) {
-    
+    if (!project || !Array.isArray(project.tasks)) continue;    
     // Loop through reference project tasks
     for (const refTask of referenceTasks) {
       if (!refTask || !refTask.externalId || !refTask.referenceId) continue;
