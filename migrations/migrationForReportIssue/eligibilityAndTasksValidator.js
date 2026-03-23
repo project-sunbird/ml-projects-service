@@ -26,7 +26,18 @@ function updateTasksUsingPublicProject(projects, publicProject) {
   const referenceTasks = publicProject.tasks;
 
   for (let project of projects) {
-    if (!project || !Array.isArray(project.tasks)) continue;
+
+    /* -------------------------------------------------------
+       NEW: Skip project if certificate or criteria missing
+    ------------------------------------------------------- */
+    if (
+      !project ||
+      !project.certificate ||
+      !project.certificate.criteria ||
+      !Array.isArray(project.tasks)
+    ) {
+      continue; // keep project unchanged
+    }
     
     // Loop through reference project tasks
     for (const refTask of referenceTasks) {
@@ -55,6 +66,11 @@ function updateTasksUsingPublicProject(projects, publicProject) {
 async function criteriaValidation(data) {
     return new Promise(async (resolve, reject) => {
         try {
+            if(!data.certificate || !data.certificate.criteria){
+              return resolve({
+                  success: false
+              });
+            }
             let criteria = data.certificate.criteria; // criteria conditions for certificate
             let validationResult = [];
             let validationMessage = "";
@@ -227,14 +243,15 @@ async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUp
   const bulkOps = [];
   const eligibleIds = [];
   const nonEligibleIds = [];
+  const projectsWithoutCertificates = [];
 
   for (const project of projects) {
     // if (!project || !project._id || !Array.isArray(project.tasks)) continue;
 
     const projectId = project._id.toString();
 
-    if (project.eligible === true) {
-      eligibleIds.push(projectId);
+    if(!project.certificate || !project.certificate.criteria){
+      projectsWithoutCertificates.push(projectId);
 
       bulkOps.push({
         projectId, // 👈 important for failure mapping
@@ -261,16 +278,51 @@ async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUp
                     name: solution.name,
                     description: solution.description,
                     isAPrivateProgram: false,
-                },
-                tasks: project.tasks,
-                isMigratedDueToReportIssue: true,
-                "certificate.eligible": true
+                }
             }
           }
         }
       });
-    } else {
-      nonEligibleIds.push(projectId);
+    }
+    else {
+      if (project.eligible === true) {
+        eligibleIds.push(projectId);
+
+        bulkOps.push({
+          projectId, // 👈 important for failure mapping
+          updateOne: {
+            filter: { _id: project._id },
+            update: {
+              $set: {
+                  isAPrivateProgram: false,
+                  isMigratedDueToReportIssue: true,
+                  programId: program._id,
+                  programExternalId: program.externalId,
+                  solutionId: solution._id,
+                  solutionExternalId: solution.externalId,
+                  programInformation: {
+                      _id: program._id,
+                      externalId: program.externalId,
+                      name: program.name,
+                      description: program.description,
+                      isAPrivateProgram: false,
+                  },
+                  solutionInformation: {
+                      _id: solution._id,
+                      externalId: solution.externalId,
+                      name: solution.name,
+                      description: solution.description,
+                      isAPrivateProgram: false,
+                  },
+                  tasks: project.tasks,
+                  "certificate.eligible": true
+              }
+            }
+          }
+        });
+      } else {
+        nonEligibleIds.push(projectId);
+      }
     }
   }
 
@@ -290,6 +342,12 @@ async function updateCorruptedProjectsInDB(projects, DB, solution, program, doUp
     jsonData["certificateNonEligibleProjectIds"].push(...nonEligibleIds);
   } else {
     jsonData["certificateNonEligibleProjectIds"] = [...nonEligibleIds];
+  }
+
+  if (Array.isArray(jsonData["projectsWithoutCertificates"])) {
+    jsonData["projectsWithoutCertificates"].push(...projectsWithoutCertificates);
+  } else {
+    jsonData["projectsWithoutCertificates"] = [...projectsWithoutCertificates];
   }
   
   fs.writeFileSync(
