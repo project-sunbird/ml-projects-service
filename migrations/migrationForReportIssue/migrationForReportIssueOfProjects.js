@@ -535,7 +535,7 @@
 
     for(const userEntry of users){
       const {userId, privateProjectIds} = userEntry;
-      // if(["680894a73d8d030008cd0388", "685bd9ac3d8d030008fda1bb"].includes(componentId)) console.log(privateProjectIds)
+
       if(privateProjectIds.length == 0) continue;
       /* Iterate each bug project */
       const projectObjectIds = privateProjectIds.map(id => new ObjectId(id));
@@ -543,6 +543,21 @@
         { _id: { $in: projectObjectIds } },
         { programId: 1, solutionId: 1, status: 1, certificate: 1, tasks : 1, attachments : 1 }
       ).toArray();
+
+      /* -------------------------------------------------------
+        ✅ KEEP ONLY PROJECTS THAT HAVE A CERTIFICATE
+      ------------------------------------------------------- */
+      const projectsWithCertificate = projects.filter(
+        project => project.certificate
+      );
+
+      /* If no valid projects remain → skip this userEntry */
+      if (projectsWithCertificate.length === 0) {
+        continue;
+      }
+
+      projects = projectsWithCertificate;
+
       projects.forEach(project => {
         if (project.programId) {
           programsToBeDeleted.add(project.programId.toString());
@@ -567,11 +582,23 @@
           }
         }
       );
+
+      /* ---------------------------------------------
+        SAFETY CHECK — public project must exist
+      --------------------------------------------- */
+
+      if (!publicProject) {
+        console.log(
+          `No public project found for user ${userId} and component ${componentId}`
+        );
+        continue;
+      }
+
       // store the private project for which a public project was deleted
       publicToPrivateProjectMap[publicProject._id.toString()] = "";
 
       // deleting public project before converting private project to public
-      if(doUpdate){
+      if(projects.length > 0 && doUpdate){
         await db.collection("projects").deleteOne(
           {_id : publicProject._id}
         )
