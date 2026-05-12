@@ -135,5 +135,7 @@ module.exports = {
     "NOT_ELIGIBLE_FOR_CERTIFICATE" : "Project is not eligible for certificate",
     "ISSUER_KID_NOT_FOUND" : "Failed to fetch certificate issuer kid",
     "PROJECT_SUBMITTED_FOR_REISSUE" : "Submitted for project certificate reIssue",
-    "FAILED_TO_START_RESOURCE": "There was an error in starting/joining. Please try again after some time."
+    "FAILED_TO_START_RESOURCE": "There was an error in starting/joining. Please try again after some time.",
+	"INVALID_PROGRAMID_OR_SOLUTIONID": 'Invalid programId or solutionId proivided',
+	"PROGRAM_ACTIVITY_LOG_UPDATED": 'Program activity log updated',
 };
